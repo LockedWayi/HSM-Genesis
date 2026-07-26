@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 
 $global:GenesisEngineBaseDir = Split-Path -Parent $PSScriptRoot
 function _Test-AdminPrivilege {
-    $identity  = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+    $identity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = [System.Security.Principal.WindowsPrincipal]::new($identity)
     return $principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
 }
@@ -51,7 +51,8 @@ function Invoke-RfsWorkflow {
                 $cachedEsn = $anonResult.Data.ESN
                 $cachedKeyhash = $anonResult.Data.Keyhash
                 break
-            } else {
+            }
+            else {
                 Write-GenesisLog -Level ERROR -Message $anonResult.ErrorMessage
                 Write-Host ""
                 Write-Host "  [FAILED] $($anonResult.ErrorMessage)" -ForegroundColor Red
@@ -95,8 +96,8 @@ function Invoke-RfsWorkflow {
             Write-Host "  [2] unpriv      (recommended for production apps)"
             Write-Host "  [3] priv_lowport"
 
-            $permChoice = Read-ValidatedInput -Prompt "  Selection [1]" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('1','2','3') } -Default '1'
-            $clientPerm = switch ($permChoice) { '1'{'priv'}; '2'{'unpriv'}; '3'{'priv_lowport'} }
+            $permChoice = Read-ValidatedInput -Prompt "  Selection [1]" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('1', '2', '3') } -Default '1'
+            $clientPerm = switch ($permChoice) { '1' { 'priv' }; '2' { 'unpriv' }; '3' { 'priv_lowport' } }
         }
 
         $usesNtoken = $false
@@ -134,7 +135,8 @@ function Invoke-RfsWorkflow {
         if ($enrollResult.Success) {
             Complete-GenesisStep -Status 'Success'
             break
-        } else {
+        }
+        else {
             Write-GenesisLog -Level ERROR -Message $enrollResult.ErrorMessage
 
             Write-Host ""
@@ -144,7 +146,7 @@ function Invoke-RfsWorkflow {
             }
             Write-Host ""
 
-            $rba = Read-ValidatedInput -Prompt "  Retry, Back to inputs, or Abort? (R/B/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r','b','a') }
+            $rba = Read-ValidatedInput -Prompt "  Retry, Back to inputs, or Abort? (R/B/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r', 'b', 'a') }
             if ($rba -match 'a') { Complete-GenesisStep -Status 'Failed' -ErrorMessage "Aborted"; return $global:GenesisStates.ENTRUST_ROLE }
             if ($rba -match 'b') { Complete-GenesisStep -Status 'Failed' -ErrorMessage "Back"; return $global:GenesisStates.RFS_SETUP }
         }
@@ -157,7 +159,8 @@ function Invoke-RfsWorkflow {
                 $gangResult = Invoke-RfsSetupGangClient -ClientIp $cip
                 if ($gangResult.Success) {
                     break
-                } else {
+                }
+                else {
                     Write-GenesisLog -Level ERROR -Message $gangResult.ErrorMessage
 
                     Write-Host ""
@@ -167,7 +170,7 @@ function Invoke-RfsWorkflow {
                     }
                     Write-Host ""
 
-                    $rsa = Read-ValidatedInput -Prompt "  Retry, Skip this client, or Abort? (R/S/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r','s','a') }
+                    $rsa = Read-ValidatedInput -Prompt "  Retry, Skip this client, or Abort? (R/S/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r', 's', 'a') }
                     if ($rsa -match 'a') { Complete-GenesisStep -Status 'Failed' -ErrorMessage "Aborted"; return $global:GenesisStates.ENTRUST_ROLE }
                     if ($rsa -match 's') { Write-GenesisLog -Level WARN -Message "Skipped whitelist for $cip"; break }
                 }
@@ -176,13 +179,13 @@ function Invoke-RfsWorkflow {
         Complete-GenesisStep -Status 'Success'
 
         Start-GenesisStep -Name "hs_clients config edit"
-        $hsmConfigPath = Join-Path $global:GenesisNfastKmDataPath "hsm-$cachedEsn\config"
+        $hsmConfigPath = Join-Path $global:GenesisNfastKmDataPath "hsm-$cachedEsn\config\config"
         $configFound = $false
         while ($true) {
             if (-not (Test-Path -LiteralPath $hsmConfigPath -PathType Leaf)) {
                 Write-GenesisLog -Level ERROR -Message "Expected HSM config not found: $hsmConfigPath"
 
-                $ra = Read-ValidatedInput -Prompt "  Retry file check, or Abort? (R/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r','a') }
+                $ra = Read-ValidatedInput -Prompt "  Retry file check, or Abort? (R/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r', 'a') }
                 if ($ra -match 'a') { Complete-GenesisStep -Status 'Failed' -ErrorMessage "Aborted"; return $global:GenesisStates.ENTRUST_ROLE }
                 continue
             }
@@ -212,7 +215,8 @@ function Invoke-RfsWorkflow {
             if ($pushResult.Success) {
                 Complete-GenesisStep -Status 'Success'
                 break
-            } else {
+            }
+            else {
                 Write-GenesisLog -Level ERROR -Message $pushResult.ErrorMessage
 
                 Write-Host ""
@@ -222,7 +226,7 @@ function Invoke-RfsWorkflow {
                 }
                 Write-Host ""
 
-                $ra = Read-ValidatedInput -Prompt "  Retry push, or Abort? (R/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r','a') }
+                $ra = Read-ValidatedInput -Prompt "  Retry push, or Abort? (R/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r', 'a') }
                 if ($ra -match 'a') { Complete-GenesisStep -Status 'Failed' -ErrorMessage "Aborted"; return $global:GenesisStates.ENTRUST_ROLE }
             }
         }
@@ -231,13 +235,13 @@ function Invoke-RfsWorkflow {
     Write-Host "  ============================================================"
     Write-Host "    RFS Server Setup COMPLETED"
     Write-Host "  ============================================================"
-    Write-Host "  HSM       : $hsmIp ($cachedEsn)"
+    Write-Host "  HSM       : $hsmIp (${cachedEsn})"
     Write-Host "  Clients   : $clientCount whitelisted"
 
     Write-Host "  [1] Setup another HSM"
     Write-Host "  [2] Return to main menu"
     Write-Host "  [3] Exit"
-    $fin = Read-ValidatedInput -Prompt "  Selection" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('1','2','3') }
+    $fin = Read-ValidatedInput -Prompt "  Selection" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('1', '2', '3') }
     if ($fin -eq '1') { return $global:GenesisStates.ENTRUST_ROLE }
     if ($fin -eq '2') { return $global:GenesisStates.MAIN_MENU }
     if ($fin -eq '3') { return $global:GenesisStates.CONFIRM_EXIT }
@@ -269,21 +273,24 @@ function Invoke-ClientWorkflow {
                     if ($pings -is [array]) { $pingCount = $pings.Count }
                     else { $pingCount = 1 }
                 }
-            } catch {}
+            }
+            catch {}
 
             if ($pingCount -eq 0) {
-                Write-GenesisLog -Level ERROR -Message "RFS is unreachable at $rfsIp."
+                Write-GenesisLog -Level ERROR -Message "RFS is unreachable at ${rfsIp}."
 
-                $rca = Read-ValidatedInput -Prompt "  Retry, Change IP, or Abort? (R/C/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r','c','a') }
+                $rca = Read-ValidatedInput -Prompt "  Retry, Change IP, or Abort? (R/C/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r', 'c', 'a') }
                 if ($rca -match 'a') { return $global:GenesisStates.ENTRUST_ROLE }
                 if ($rca -match 'c') { $rfsIp = ""; continue }
                 if ($rca -match 'r') { continue }
-            } elseif ($pingCount -lt 3) {
+            }
+            elseif ($pingCount -lt 3) {
                 Write-GenesisLog -Level WARN -Message "Partial ping success ($pingCount/3). RFS may have intermittent connectivity."
                 $contP = Read-ValidatedInput -Prompt "  Continue anyway? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v }
                 if ($contP -match '^(n|no)$') { $rfsIp = ""; continue }
                 break
-            } else {
+            }
+            else {
                 break
             }
         }
@@ -313,14 +320,27 @@ function Invoke-ClientWorkflow {
                 if ($anonResult.Success) {
                     $hsmIps += $hip
                     $hsmIdentities[$hip] = $anonResult.Data
+
+                    Write-Host "  Connection mode for HSM ${hip}:"
+                    Write-Host "  [1] privileged   (recommended if RFS acts as client too, or test environments;"
+                    Write-Host "                    at least one priv client is advised)"
+                    Write-Host "  [2] unprivileged (recommended for production environments)"
+                    $privChoice = Read-ValidatedInput `
+                        -Prompt "  Selection [2]" `
+                        -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('1', '2') } `
+                        -Default '2'
+                    $privVal = if ($privChoice -eq '1') { 1 } else { 0 }
+
                     $hsmEntries += [PSCustomObject]@{
-                        IP      = $hip
-                        ESN     = $anonResult.Data.ESN
-                        Keyhash = $anonResult.Data.Keyhash
+                        IP         = $hip
+                        ESN        = $anonResult.Data.ESN
+                        Keyhash    = $anonResult.Data.Keyhash
+                        Privileged = $privVal
                     }
                     $i++
                     break
-                } else {
+                }
+                else {
                     Write-GenesisLog -Level ERROR -Message $anonResult.ErrorMessage
 
                     Write-Host ""
@@ -330,7 +350,7 @@ function Invoke-ClientWorkflow {
                     }
                     Write-Host ""
 
-                    $rcsa = Read-ValidatedInput -Prompt "  Retry, Change IP, Skip this HSM, Abort? (R/C/S/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r','c','s','a') }
+                    $rcsa = Read-ValidatedInput -Prompt "  Retry, Change IP, Skip this HSM, Abort? (R/C/S/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r', 'c', 's', 'a') }
                     if ($rcsa -match 'a') { return $global:GenesisStates.ENTRUST_ROLE }
                     if ($rcsa -match 's') { $hsmCount--; break }
                     if ($rcsa -match 'c') { $hip = ""; continue }
@@ -344,45 +364,14 @@ function Invoke-ClientWorkflow {
             return $global:GenesisStates.ENTRUST_ROLE
         }
 
-        $clientCount = [int](Read-ValidatedInput -Prompt "  How many client IPs to register in [hs_clients]? (1-10)" -Validator { param($v) Test-GenesisInteger -Value $v -Min 1 -Max 10 })
-
-        $clientIps = @()
-        $clientEntries = @()
-        for ($k = 1; $k -le $clientCount; $k++) {
-            while ($true) {
-                $cip = Read-ValidatedInput -Prompt "  Client $k IP" -Validator { param($v) Test-GenesisIPv4 -Value $v }
-                if ($clientIps.Count -gt 0 -and (Test-GenesisDuplicate -Value $cip -ExistingList $clientIps)) {
-                    Write-Host "  [!] Duplicate IP entered" -ForegroundColor Yellow
-                    continue
-                }
-                $clientIps += $cip
-
-                Write-Host "  Permission level for $cip?"
-                Write-Host "  [1] priv"
-                Write-Host "  [2] unpriv"
-                Write-Host "  [3] priv_lowport"
-                $permChoice = Read-ValidatedInput -Prompt "  Selection [1]" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('1','2','3') } -Default '1'
-                $cPerm = switch ($permChoice) { '1'{'priv'}; '2'{'unpriv'}; '3'{'priv_lowport'} }
-
-                $clientEntries += [PSCustomObject]@{
-                    IP   = $cip
-                    Perm = $cPerm
-                }
-                break
-            }
-        }
-
         Write-Host "  ------------------------------------------------------------"
         Write-Host "    Review Setup Parameters"
         Write-Host "  ------------------------------------------------------------"
         Write-Host "  RFS IP        : $rfsIp"
         Write-Host "  HSM Count     : $hsmCount"
-        foreach ($hip in $hsmIps) {
-            Write-Host "    - $hip ($($hsmIdentities[$hip].ESN))"
-        }
-        Write-Host "  Client Count  : $clientCount"
-        foreach ($c in $clientEntries) {
-            Write-Host "    - $($c.IP) ($($c.Perm))"
+        foreach ($entry in $hsmEntries) {
+            $privLabel = if ($entry.Privileged -eq 1) { 'priv' } else { 'unpriv' }
+            Write-Host "    - $($entry.IP) ($($entry.ESN)) [$privLabel]"
         }
         Write-Host ""
 
@@ -396,7 +385,7 @@ function Invoke-ClientWorkflow {
         if (-not (Test-Path -LiteralPath $templatePath -PathType Leaf)) {
             Write-GenesisLog -Level ERROR -Message "Template file missing: $templatePath"
 
-            $ra = Read-ValidatedInput -Prompt "  Retry check, or Abort? (R/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r','a') }
+            $ra = Read-ValidatedInput -Prompt "  Retry check, or Abort? (R/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r', 'a') }
             if ($ra -match 'a') { Complete-GenesisStep -Status 'Failed'; return $global:GenesisStates.ENTRUST_ROLE }
             continue
         }
@@ -419,36 +408,12 @@ function Invoke-ClientWorkflow {
     }
     Complete-GenesisStep -Status 'Success'
 
-    Start-GenesisStep -Name "Add client entries"
-    foreach ($client in $clientEntries) {
-        while ($true) {
-            $addResult = Add-HsClientEntry -FilePath $outputPath -ClientIp $client.IP -ClientPerm $client.Perm
-            
-            if ($addResult.Success) {
-                break
-            } else {
-                Write-GenesisLog -Level ERROR -Message $addResult.ErrorMessage
-                
-                Write-Host ""
-                Write-Host "  [FAILED] $($addResult.ErrorMessage)" -ForegroundColor Red
-                if ($addResult.ErrorDetail) {
-                    Write-Host "  Detail : $($addResult.ErrorDetail)" -ForegroundColor DarkRed
-                }
-                Write-Host ""
-                
-                $rsa = Read-ValidatedInput -Prompt "  Retry, Skip this client, or Abort? (R/S/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r','s','a') }
-                if ($rsa -match 'a') { Complete-GenesisStep -Status 'Failed'; return $global:GenesisStates.ENTRUST_ROLE }
-                if ($rsa -match 's') { break }
-            }
-        }
-    }
-    Complete-GenesisStep -Status 'Success'
-
     Start-GenesisStep -Name "nethsmenroll for all HSMs"
     for ($idx = 0; $idx -lt $hsmIps.Count; $idx++) {
         $hip = $hsmIps[$idx]
         while ($true) {
-            $enrollResult = Invoke-NethsmEnroll -HsmIp $hip
+            $privFlag = $hsmEntries[$idx].Privileged -eq 1
+            $enrollResult = Invoke-NethsmEnroll -HsmIp $hip -Force -Privileged:$privFlag
             if ($enrollResult.Success) { break }
             else {
                 Write-GenesisLog -Level ERROR -Message $enrollResult.ErrorMessage
@@ -460,7 +425,7 @@ function Invoke-ClientWorkflow {
                 }
                 Write-Host ""
 
-                $rcsa = Read-ValidatedInput -Prompt "  Retry, Change IP, Skip, or Abort? (R/C/S/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r','c','s','a') }
+                $rcsa = Read-ValidatedInput -Prompt "  Retry, Change IP, Skip, or Abort? (R/C/S/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r', 'c', 's', 'a') }
                 if ($rcsa -match 'a') { Complete-GenesisStep -Status 'Failed'; return $global:GenesisStates.ENTRUST_ROLE }
                 if ($rcsa -match 's') { break }
                 if ($rcsa -match 'c') { 
@@ -494,7 +459,7 @@ function Invoke-ClientWorkflow {
         }
         Write-Host ""
 
-        $ra = Read-ValidatedInput -Prompt "  Retry, or Abort? (R/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r','a') }
+        $ra = Read-ValidatedInput -Prompt "  Retry, or Abort? (R/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r', 'a') }
         if ($ra -match 'a') { Complete-GenesisStep -Status 'Failed'; return $global:GenesisStates.ENTRUST_ROLE }
     }
     Complete-GenesisStep -Status 'Success'
@@ -513,7 +478,7 @@ function Invoke-ClientWorkflow {
         }
         Write-Host ""
 
-        $ra = Read-ValidatedInput -Prompt "  Retry, or Abort? (R/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r','a') }
+        $ra = Read-ValidatedInput -Prompt "  Retry, or Abort? (R/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r', 'a') }
         if ($ra -match 'a') { Complete-GenesisStep -Status 'Failed'; return $global:GenesisStates.ENTRUST_ROLE }
     }
     Complete-GenesisStep -Status 'Success'
@@ -529,7 +494,8 @@ function Invoke-ClientWorkflow {
         }
         Write-Host ""
         Complete-GenesisStep -Status 'Failed'
-    } else {
+    }
+    else {
         $blocks = $enqResult.Data.RawOutput -split 'Module #'
         $operationalEsns = @()
         if ($blocks.Count -gt 1) {
@@ -556,7 +522,8 @@ function Invoke-ClientWorkflow {
         if ($allOperational) {
             Write-GenesisLog -Level INFO -Message "All expected HSMs operational"
             Complete-GenesisStep -Status 'Success'
-        } else {
+        }
+        else {
             Write-GenesisLog -Level WARN -Message "The following HSMs are NOT operational in enquiry:`r`n  - $($missingEsns -join "`r`n  - ")"
             Complete-GenesisStep -Status 'Warning'
         }
@@ -573,35 +540,26 @@ function Invoke-ClientWorkflow {
         }
         Write-Host ""
         Complete-GenesisStep -Status 'Failed'
-    } else {
-        $nfBlocks = $nfResult.Data.RawOutput -split 'Module #'
-        $usableEsns = @()
-        if ($nfBlocks.Count -gt 1) {
-            for ($k = 1; $k -lt $nfBlocks.Count; $k++) {
-                $blk = $nfBlocks[$k]
-                $modPart = ($blk -split 'Slot #')[0]
-                $esnMatch = [regex]::Match($modPart, 'esn\s+([0-9A-Fa-f\-]{14})')
-                $stateMatch = [regex]::Match($modPart, 'state 0x2 Usable')
-                if ($esnMatch.Success -and $stateMatch.Success) {
-                    $usableEsns += $esnMatch.Groups[1].Value.ToUpper()
-                }
-            }
-        }
+    }
+    else {
+        $usableModules = $nfResult.Data.UsableModules
 
         $nfAllUsable = $true
-        foreach ($hip in $hsmIps) {
-            $expectedEsn = $hsmIdentities[$hip].ESN
-            if ($usableEsns -notcontains $expectedEsn) {
+        foreach ($entry in $hsmEntries) {
+            $expectedEsn = $entry.ESN.ToUpper()
+            if ($usableModules -notcontains $expectedEsn) {
                 $nfAllUsable = $false
-                Write-GenesisLog -Level WARN -Message "HSM $expectedEsn state in nfkminfo is not Usable."
+                Write-GenesisLog -Level WARN -Message "HSM $expectedEsn is not in nfkminfo Usable state."
             }
         }
 
         if ($nfAllUsable) {
             Write-GenesisLog -Level INFO -Message "nfkminfo confirms all HSMs Usable"
             Complete-GenesisStep -Status 'Success'
-        } else {
-            $cont = Read-ValidatedInput -Prompt "  Continue to cknfastrc step? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v }
+        }
+        else {
+            $cont = Read-ValidatedInput -Prompt "  Continue to cknfastrc step? (Y/N)" `
+                -Validator { param($v) Test-GenesisYesNo -Value $v }
             if ($cont -match '^(n|no)$') {
                 Complete-GenesisStep -Status 'Failed'
                 return $global:GenesisStates.ENTRUST_ROLE
@@ -615,7 +573,8 @@ function Invoke-ClientWorkflow {
     if (-not $cknResult.Success) {
         Write-GenesisLog -Level ERROR -Message $cknResult.ErrorMessage
         Complete-GenesisStep -Status 'Failed'
-    } else {
+    }
+    else {
         Complete-GenesisStep -Status 'Success'
     }
 
@@ -626,7 +585,7 @@ function Invoke-ClientWorkflow {
     Write-Host "  [1] Setup another Server"
     Write-Host "  [2] Return to main menu"
     Write-Host "  [3] Exit"
-    $fin = Read-ValidatedInput -Prompt "  Selection" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('1','2','3') }
+    $fin = Read-ValidatedInput -Prompt "  Selection" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('1', '2', '3') }
     if ($fin -eq '1') { return $global:GenesisStates.ENTRUST_ROLE }
     if ($fin -eq '2') { return $global:GenesisStates.MAIN_MENU }
     if ($fin -eq '3') { return $global:GenesisStates.CONFIRM_EXIT }
@@ -640,7 +599,7 @@ function Start-GenesisEngine {
     }
 
     $dateSuffix = Get-Date -Format 'yyyyMMdd'
-    $global:GenesisLogFile = Join-Path $logDir "genesis_$dateSuffix.log"
+    $global:GenesisLogFile = Join-Path $logDir "genesis_${dateSuffix}.log"
     $global:GenesisLogInitialized = $true
 
     $sessionHeader = @('', ('=' * 72), "  Genesis-Init Session Started : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')", "  User                         : $($env:USERNAME)", "  Hostname                     : $($env:COMPUTERNAME)", ('=' * 72), '')
@@ -667,7 +626,8 @@ function Start-GenesisEngine {
         $path = Join-Path $global:GenesisEngineBaseDir $mod
         try {
             . $path
-        } catch {
+        }
+        catch {
             Write-GenesisLog -Level ERROR -Message "Module failed to load: $path"
             exit 1
         }

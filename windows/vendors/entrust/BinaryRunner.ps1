@@ -4,24 +4,26 @@ $ErrorActionPreference = 'Stop'
 
 $global:GenesisNfastHome = if ($env:NFAST_HOME) {
     $env:NFAST_HOME
-} else {
+}
+else {
     'C:\Program Files\nCipher\nfast'
 }
 
-$global:GenesisNfastBinPath    = Join-Path $global:GenesisNfastHome 'bin'
+$global:GenesisNfastBinPath = Join-Path $global:GenesisNfastHome 'bin'
 $global:GenesisNfastKmDataPath = if ($env:NFAST_KMDATA) {
     $env:NFAST_KMDATA
-} else {
+}
+else {
     'C:\ProgramData\nCipher\Key Management Data'
 }
 
 function _New-GenesisResult {
     param(
         [bool]   $Success,
-        [int]    $ExitCode    = -1,
-        $Data                 = $null,
+        [int]    $ExitCode = -1,
+        $Data = $null,
         [string] $ErrorMessage = $null,
-        [string] $ErrorDetail  = $null
+        [string] $ErrorDetail = $null
     )
     return [PSCustomObject]@{
         Success      = $Success
@@ -65,15 +67,15 @@ function _Invoke-NfastBinary {
 
     try {
         $procParams = @{
-            FilePath               = $binaryPath
-            Wait                   = $true
-            NoNewWindow            = $true
-            PassThru               = $true
+            FilePath    = $binaryPath
+            Wait        = $true
+            NoNewWindow = $true
+            PassThru    = $true
         }
 
         if (-not $Interactive) {
             $procParams['RedirectStandardOutput'] = $stdoutTmp
-            $procParams['RedirectStandardError']  = $stderrTmp
+            $procParams['RedirectStandardError'] = $stderrTmp
         }
 
         if ($Arguments.Count -gt 0) {
@@ -94,10 +96,12 @@ function _Invoke-NfastBinary {
                 Write-GenesisLog -Level DEBUG -Message "[STDERR] $($stderrText.Trim())" -NoConsole
             }
         }
-    } catch {
+    }
+    catch {
         $errMessage = $_.Exception.Message
         Write-GenesisLog -Level ERROR -Message "Start-Process failed: $errMessage"
-    } finally {
+    }
+    finally {
         Remove-Item -LiteralPath $stdoutTmp -Force -ErrorAction SilentlyContinue
         Remove-Item -LiteralPath $stderrTmp -Force -ErrorAction SilentlyContinue
     }
@@ -145,8 +149,8 @@ function Invoke-Anonkneti {
     Write-GenesisLog -Level INFO -Message "Keyhash detected : $keyhash"
 
     return _New-GenesisResult -Success $true -ExitCode $result.ExitCode -Data @{
-        ESN       = $esn
-        Keyhash   = $keyhash
+        ESN     = $esn
+        Keyhash = $keyhash
     }
 }
 
@@ -218,17 +222,29 @@ function Invoke-NethsmEnroll {
 
     Write-GenesisSection -Title "nethsmenroll - Client Enrollment ($HsmIp)"
     Write-GenesisLog -Level INFO -Message "nethsmenroll.exe --force $HsmIp"
+    param(
+        [Parameter(Mandatory)] [string] $HsmIp,
+        [switch] $Force,
+        [switch] $Privileged
+    )
+
+    Write-GenesisSection -Title "nethsmenroll - Client Enrollment ($HsmIp)"
+
+    $argList = @()
+    if ($Force) { $argList += '--force' }
+    if ($Privileged) { $argList += '-p' }
+    $argList += $HsmIp
+
+    $flagStr = $argList -join ' '
+    Write-GenesisLog -Level INFO -Message "nethsmenroll.exe $flagStr"
+    
     Write-Host "[i] nethsmenroll will run in interactive mode. Follow the on-screen instructions." -ForegroundColor Cyan
 
-    $result = _Invoke-NfastBinary -BinaryName 'nethsmenroll.exe' -Arguments @('--force', $HsmIp) -Interactive
+    $result = _Invoke-NfastBinary -BinaryName 'nethsmenroll.exe' -Arguments $argList -Interactive
+}
 
-    if (-not $result.Success) {
-        Write-GenesisLog -Level ERROR -Message "nethsmenroll failed. ExitCode=$($result.ExitCode)"
-        return _New-GenesisResult -Success $false -ExitCode $result.ExitCode -ErrorMessage "nethsmenroll.exe failed (ExitCode $($result.ExitCode)). See console output." -ErrorDetail "Interactive output"
-    }
-
-    Write-GenesisLog -Level INFO -Message "HSM enrollment completed: $HsmIp"
-    return _New-GenesisResult -Success $true -ExitCode $result.ExitCode
+Write-GenesisLog -Level INFO -Message "HSM enrollment completed: $HsmIp"
+return _New-GenesisResult -Success $true -ExitCode $result.ExitCode
 }
 
 function Invoke-RfsSyncSetup {
@@ -337,7 +353,6 @@ function Invoke-NfkmInfo {
 
 function New-CknfastrcFile {
     $cknfastrcPath = Join-Path $global:GenesisNfastHome 'cknfastrc'
-
     Write-GenesisSection -Title "cknfastrc - PKCS#11 Configuration"
     Write-GenesisLog -Level INFO -Message "Creating cknfastrc: $cknfastrcPath"
 
@@ -353,4 +368,7 @@ function New-CknfastrcFile {
     Write-GenesisLog -Level INFO -Message "cknfastrc written: $cknfastrcPath"
     Write-Host "[OK] cknfastrc created: $cknfastrcPath" -ForegroundColor Green
     return _New-GenesisResult -Success $true -ExitCode 0
-}
+    Write-GenesisLog -Level INFO -Message "cknfastrc written: $cknfastrcPath"
+    Write-Host "[OK] cknfastrc created: $cknfastrcPath" -ForegroundColor Green
+    return _New-GenesisResult -Success $true -ExitCode 0
+} }

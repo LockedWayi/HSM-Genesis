@@ -51,7 +51,8 @@ function _Build-NethsmDynamicBlock {
             -RemoteIp   $hsm.IP `
             -RemotePort 9004 `
             -RemoteEsn  $hsm.ESN `
-            -Keyhash    $hsm.Keyhash
+            -Keyhash    $hsm.Keyhash `
+            -Privileged $hsm.Privileged
     }
     return ($entries -join "`r`n-`r`n")
 }
