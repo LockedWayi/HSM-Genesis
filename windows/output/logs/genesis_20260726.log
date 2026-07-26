@@ -1,0 +1,664 @@
+
+========================================================================
+  Genesis-Init Session Started : 2026-07-26 14:17:53
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-07-26 14:17:53] [INFO] Admin yetki kontrolu: BASARILI (suha.karagol)
+[2026-07-26 14:17:57] [INFO] Rol secildi: 2
+[2026-07-26 14:17:57] [INFO] ROL: Client Server Kurulumu
+[2026-07-26 14:18:13] [INFO] RFS IP alindi: 192.168.202.102
+[2026-07-26 14:18:53] [INFO] HSM 1 IP alindi: 192.168.202.152
+[2026-07-26 14:18:53] [INFO] Client kurulum inputlari tamamlandi. RFS: 192.168.202.102 | HSMs: 192.168.202.152
+[2026-07-26 14:18:53] [INFO] === CLIENT SERVER KURULUM WORKFLOW BASLADI ===
+
+[2026-07-26 14:18:53] [SECTION] hardserver.cfg - Config Uretimi
+[2026-07-26 14:18:53] [WARN] Mevcut hardserver config tespit edildi: C:\ProgramData\nCipher\Key Management Data\config\config
+[2026-07-26 14:19:05] [INFO] Backup klasoru olusturuldu: C:\Users\suha.karagol\Desktop\WORK\Projects\nShield_Genesis-Init\output\backups
+[2026-07-26 14:19:05] [INFO] Config yedeklendi -> C:\Users\suha.karagol\Desktop\WORK\Projects\nShield_Genesis-Init\output\backups\hardserver.cfg.bak_20260726_141905
+[2026-07-26 14:19:05] [INFO] 1 HSM icin nethsm_imports blogu uretiliyor: 192.168.202.152
+[2026-07-26 14:19:05] [INFO] hardserver.cfg yazildi: C:\ProgramData\nCipher\Key Management Data\config\config
+[2026-07-26 14:19:05] [INFO] Kayitli HSM'ler: 192.168.202.152
+[2026-07-26 14:19:05] [WARN] HATIRLATMA: Keyhash 40 sifir olarak birakildi.
+
+[2026-07-26 14:19:05] [SECTION] nethsmenroll - HSM Enrollment (1 adet)
+
+[2026-07-26 14:19:05] [SECTION] nethsmenroll - Client Enrollment (192.168.202.152)
+[2026-07-26 14:19:05] [INFO] nethsmenroll.exe --force 192.168.202.152
+[2026-07-26 14:19:10] [DEBUG] nethsmenroll ExitCode: 0
+[2026-07-26 14:19:10] [INFO] HSM enrollment tamamlandi: 192.168.202.152
+
+[2026-07-26 14:19:10] [SECTION] rfs-sync - Setup (192.168.202.102)
+[2026-07-26 14:19:10] [INFO] rfs-sync.exe --setup --no-authenticate 192.168.202.102
+[2026-07-26 14:19:10] [DEBUG] Calistiriliyor: rfs-sync.exe --setup --no-authenticate 192.168.202.102
+[2026-07-26 14:19:11] [DEBUG] [STDOUT] No current RFS synchronization configuration.
+Configuration successfully written; new config details:
+Using RFS at 192.168.202.102:9004
+Authenticating to the RFS using the hardserver software KNETI.
+[2026-07-26 14:19:11] [INFO] rfs-sync setup tamamlandi. RFS: 192.168.202.102
+
+[2026-07-26 14:19:11] [SECTION] rfs-sync - Update (Security World Sync)
+[2026-07-26 14:19:11] [INFO] rfs-sync.exe --update
+[2026-07-26 14:19:11] [DEBUG] Calistiriliyor: rfs-sync.exe --update
+[2026-07-26 14:19:12] [DEBUG] [STDOUT] Starting synchronisation, task ID 6a65ed2f.877dd1a9b9ffc198
+[2026-07-26 14:19:12] [DEBUG] [STDERR] Unable to query generation file: ServerAccessDenied
+[2026-07-26 14:19:12] [INFO] Security World sync tamamlandi.
+
+[2026-07-26 14:19:12] [SECTION] enquiry - Baglanti Dogrulama
+[2026-07-26 14:19:12] [INFO] enquiry.exe
+[2026-07-26 14:19:12] [DEBUG] Calistiriliyor: enquiry.exe 
+[2026-07-26 14:19:13] [DEBUG] [STDOUT] Server:
+ enquiry reply flags  none
+ enquiry reply level  Six
+ serial number        031A-05E0-D947
+ mode                 operational
+ version              13.6.11
+ speed index          7922
+ rec. queue           374..574
+ level one flags      Hardware HasTokens SupportsCommandState
+ version string       13.6.11-223-40eab497, 13.5.6-104-d14de646, Bootloader: 1.2.3, Security Processor: 13.5.6 , 13.6.12-312-a52430a8
+ checked in           00000000680a662a Thu Apr 24 19:26:18 2025
+ level two flags      none
+ max. write size      8192
+ level three flags    KeyStorage
+ level four flags     OrderlyClearUnit HasRTC HasNVRAM HasNSOPermsCmd ServerHasPollCmds FastPollSlotList HasSEE HasKLF HasShareACL HasFeatureEnable HasFileOp HasLongJobs ServerHasLongJobs AESModuleKeys NTokenCmds JobFragmentation LongJobsPreferred Type2Smartcard ServerHasCreateClient HasInitialiseUnitEx AlwaysUseStrongPrimes Type3Smartcard HasKLF2
+ module type code     0
+ module type          nShield Hardserver
+ product name         nFast server
+ device name          
+ EnquirySix version   8
+ impath kx groups     DHPrime1024 DHPrime3072 DHPrime3072Ex DHPrimeMODP3072 DHPrimeMODP3072mGCM
+ feature ctrl flags   none
+ features enabled     none
+ version serial       0
+ level six flags      none
+ remote port (IPv4)   9004
+ kneti hash           afc3484c02acd05e4871ead4df97c75332f83933
+ rec. LongJobs queue  0
+ SEE machine type     None
+ supported KML types 
+ active modes         none
+ remote port (IPv6)   9004
+
+Module #1:
+ enquiry reply flags  Failed UnprivOnly
+ enquiry reply level  Six
+ serial number        unknownunknown
+ mode                 operational
+ version              0.0.0
+ speed index          0
+ rec. queue           0..0
+ level one flags      none
+ version string       unknown
+ checked in           0000000000000000 Thu Jan  1 03:00:00 1970
+ level two flags      none
+ max. write size      0
+ level three flags    none
+ level four flags     none
+ module type code     0
+ module type          nShield Connect
+ product name         unknown
+ device name          unknown
+ EnquirySix version   3
+ impath kx groups    
+ feature ctrl flags   none
+ features enabled     none
+ version serial       0
+ connection status    RemoteServerFailed, INET/192.168.202.152/9004 (InvalidModule)
+ connection info      esn = 0000-0000-0000; addr = INET/192.168.202.152/9004
+ image version        unknown
+ level six flags      none
+ hardware status      unknown
+
+Module #2:
+ enquiry reply flags  Failed UnprivOnly
+ enquiry reply level  Six
+ serial number        unknownunknown
+ mode                 operational
+ version              0.0.0
+ speed index          0
+ rec. queue           0..0
+ level one flags      none
+ version string       unknown
+ checked in           0000000000000000 Thu Jan  1 03:00:00 1970
+ level two flags      none
+ max. write size      0
+ level three flags    none
+ level four flags     none
+ module type code     0
+ module type          nShield Connect
+ product name         unknown
+ device name          unknown
+ EnquirySix version   3
+ impath kx groups    
+ feature ctrl flags   none
+ features enabled     none
+ version serial       0
+ connection status    RemoteServerFailed, <us> (ClientLicenseLimitExceeded (4 used, max 3))
+ connection info      esn = 031A-05E0-D947; addr = INET/192.168.202.152/9004; ku hash = 9b9781c24fdb43a1f25e51103924d61740cc253c, mech = Any
+ image version        unknown
+ level six flags      none
+ hardware status      unknown
+[2026-07-26 14:19:13] [INFO] Baglanti BASARILI. Operational modul sayisi: 3
+
+[2026-07-26 14:19:13] [SECTION] cknfastrc - PKCS#11 Konfigurasyonu
+[2026-07-26 14:19:13] [INFO] cknfastrc olusturuluyor: C:\Program Files\nCipher\nfast\cknfastrc
+[2026-07-26 14:19:13] [INFO] cknfastrc yazildi: C:\Program Files\nCipher\nfast\cknfastrc
+[2026-07-26 14:19:13] [INFO] === CLIENT SERVER KURULUM TAMAMLANDI ===
+[2026-07-26 14:19:13] [INFO] Genesis-Init tamamlandi.
+
+========================================================================
+  Genesis-Init Session Started : 2026-07-26 14:23:31
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-07-26 14:23:31] [INFO] Admin yetki kontrolu: BASARILI (suha.karagol)
+[2026-07-26 14:23:33] [INFO] Rol secildi: 2
+[2026-07-26 14:23:33] [INFO] ROL: Client Server Kurulumu
+[2026-07-26 14:23:41] [INFO] RFS IP alindi: 192.168.202.102
+[2026-07-26 14:23:54] [INFO] HSM 1 IP alindi: 192.168.202.152
+[2026-07-26 14:23:54] [INFO] Client kurulum inputlari tamamlandi. RFS: 192.168.202.102 | HSMs: 192.168.202.152
+[2026-07-26 14:23:54] [INFO] === CLIENT SERVER KURULUM WORKFLOW BASLADI ===
+
+[2026-07-26 14:23:54] [SECTION] hardserver.cfg - Config Uretimi
+[2026-07-26 14:23:54] [WARN] Mevcut hardserver config tespit edildi: C:\ProgramData\nCipher\Key Management Data\config\config
+[2026-07-26 14:24:04] [INFO] Config yedeklendi -> C:\Users\suha.karagol\Desktop\WORK\Projects\nShield_Genesis-Init\output\backups\hardserver.cfg.bak_20260726_142404
+[2026-07-26 14:24:04] [INFO] 1 HSM icin nethsm_imports blogu uretiliyor: 192.168.202.152
+[2026-07-26 14:24:04] [INFO] hardserver.cfg yazildi: C:\ProgramData\nCipher\Key Management Data\config\config
+[2026-07-26 14:24:04] [INFO] Kayitli HSM'ler: 192.168.202.152
+[2026-07-26 14:24:04] [WARN] HATIRLATMA: Keyhash 40 sifir olarak birakildi.
+
+[2026-07-26 14:24:04] [SECTION] nethsmenroll - HSM Enrollment (1 adet)
+
+[2026-07-26 14:24:04] [SECTION] nethsmenroll - Client Enrollment (192.168.202.152)
+[2026-07-26 14:24:04] [INFO] nethsmenroll.exe --force 192.168.202.152
+[2026-07-26 14:24:08] [DEBUG] nethsmenroll ExitCode: 0
+[2026-07-26 14:24:08] [INFO] HSM enrollment tamamlandi: 192.168.202.152
+
+[2026-07-26 14:24:08] [SECTION] rfs-sync - Setup (192.168.202.102)
+[2026-07-26 14:24:08] [INFO] rfs-sync.exe --setup --no-authenticate 192.168.202.102
+[2026-07-26 14:24:08] [DEBUG] Calistiriliyor: rfs-sync.exe --setup --no-authenticate 192.168.202.102
+[2026-07-26 14:24:09] [DEBUG] [STDOUT] No current RFS synchronization configuration.
+Configuration successfully written; new config details:
+Using RFS at 192.168.202.102:9004
+Authenticating to the RFS using the hardserver software KNETI.
+[2026-07-26 14:24:09] [INFO] rfs-sync setup tamamlandi. RFS: 192.168.202.102
+
+[2026-07-26 14:24:09] [SECTION] rfs-sync - Update (Security World Sync)
+[2026-07-26 14:24:09] [INFO] rfs-sync.exe --update
+[2026-07-26 14:24:09] [DEBUG] Calistiriliyor: rfs-sync.exe --update
+[2026-07-26 14:24:10] [DEBUG] [STDOUT] Starting synchronisation, task ID 6a65ee59.4f95c80a2879d1da
+[2026-07-26 14:24:10] [DEBUG] [STDERR] Unable to query generation file: ServerAccessDenied
+[2026-07-26 14:24:10] [INFO] Security World sync tamamlandi.
+
+[2026-07-26 14:24:10] [SECTION] enquiry - Baglanti Dogrulama
+[2026-07-26 14:24:10] [INFO] enquiry.exe
+[2026-07-26 14:24:10] [DEBUG] Calistiriliyor: enquiry.exe 
+[2026-07-26 14:24:11] [DEBUG] [STDOUT] Server:
+ enquiry reply flags  none
+ enquiry reply level  Six
+ serial number        031A-05E0-D947
+ mode                 operational
+ version              13.6.11
+ speed index          7922
+ rec. queue           374..574
+ level one flags      Hardware HasTokens SupportsCommandState
+ version string       13.6.11-223-40eab497, 13.5.6-104-d14de646, Bootloader: 1.2.3, Security Processor: 13.5.6 , 13.6.12-312-a52430a8
+ checked in           00000000680a662a Thu Apr 24 19:26:18 2025
+ level two flags      none
+ max. write size      8192
+ level three flags    KeyStorage
+ level four flags     OrderlyClearUnit HasRTC HasNVRAM HasNSOPermsCmd ServerHasPollCmds FastPollSlotList HasSEE HasKLF HasShareACL HasFeatureEnable HasFileOp HasLongJobs ServerHasLongJobs AESModuleKeys NTokenCmds JobFragmentation LongJobsPreferred Type2Smartcard ServerHasCreateClient HasInitialiseUnitEx AlwaysUseStrongPrimes Type3Smartcard HasKLF2
+ module type code     0
+ module type          nShield Hardserver
+ product name         nFast server
+ device name          
+ EnquirySix version   8
+ impath kx groups     DHPrime1024 DHPrime3072 DHPrime3072Ex DHPrimeMODP3072 DHPrimeMODP3072mGCM
+ feature ctrl flags   none
+ features enabled     none
+ version serial       0
+ level six flags      none
+ remote port (IPv4)   9004
+ kneti hash           afc3484c02acd05e4871ead4df97c75332f83933
+ rec. LongJobs queue  0
+ SEE machine type     None
+ supported KML types 
+ active modes         none
+ remote port (IPv6)   9004
+
+Module #1:
+ enquiry reply flags  Failed UnprivOnly
+ enquiry reply level  Six
+ serial number        unknownunknown
+ mode                 operational
+ version              0.0.0
+ speed index          0
+ rec. queue           0..0
+ level one flags      none
+ version string       unknown
+ checked in           0000000000000000 Thu Jan  1 03:00:00 1970
+ level two flags      none
+ max. write size      0
+ level three flags    none
+ level four flags     none
+ module type code     0
+ module type          nShield Connect
+ product name         unknown
+ device name          unknown
+ EnquirySix version   3
+ impath kx groups    
+ feature ctrl flags   none
+ features enabled     none
+ version serial       0
+ connection status    RemoteServerFailed, INET/192.168.202.152/9004 (InvalidModule)
+ connection info      esn = 0000-0000-0000; addr = INET/192.168.202.152/9004
+ image version        unknown
+ level six flags      none
+ hardware status      unknown
+
+Module #2:
+ enquiry reply flags  Failed UnprivOnly
+ enquiry reply level  Six
+ serial number        unknownunknown
+ mode                 operational
+ version              0.0.0
+ speed index          0
+ rec. queue           0..0
+ level one flags      none
+ version string       unknown
+ checked in           0000000000000000 Thu Jan  1 03:00:00 1970
+ level two flags      none
+ max. write size      0
+ level three flags    none
+ level four flags     none
+ module type code     0
+ module type          nShield Connect
+ product name         unknown
+ device name          unknown
+ EnquirySix version   3
+ impath kx groups    
+ feature ctrl flags   none
+ features enabled     none
+ version serial       0
+ connection status    RemoteServerFailed, <us> (ClientLicenseLimitExceeded (4 used, max 3))
+ connection info      esn = 031A-05E0-D947; addr = INET/192.168.202.152/9004; ku hash = 9b9781c24fdb43a1f25e51103924d61740cc253c, mech = Any
+ image version        unknown
+ level six flags      none
+ hardware status      unknown
+[2026-07-26 14:24:11] [INFO] Baglanti BASARILI. Operational modul sayisi: 3
+
+[2026-07-26 14:24:11] [SECTION] cknfastrc - PKCS#11 Konfigurasyonu
+[2026-07-26 14:24:11] [INFO] cknfastrc olusturuluyor: C:\Program Files\nCipher\nfast\cknfastrc
+[2026-07-26 14:24:11] [INFO] cknfastrc yazildi: C:\Program Files\nCipher\nfast\cknfastrc
+[2026-07-26 14:24:11] [INFO] === CLIENT SERVER KURULUM TAMAMLANDI ===
+[2026-07-26 14:24:11] [INFO] Genesis-Init tamamlandi.
+
+========================================================================
+  Genesis-Init Session Started : 2026-07-26 20:37:32
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-07-26 20:37:32] [INFO] Backup retention: 2 backups present, limit 10, nothing to remove.
+
+========================================================================
+  Genesis-Init Session Started : 2026-07-26 20:39:48
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-07-26 20:39:48] [INFO] Backup retention: 2 backups present, limit 10, nothing to remove.
+
+========================================================================
+  Genesis-Init Session Started : 2026-07-26 20:43:09
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-07-26 20:43:09] [INFO] Backup retention: 2 backups present, limit 10, nothing to remove.
+[2026-07-26 20:44:03] [DEBUG] Validation failed for input: '3'
+[2026-07-26 20:44:09] [DEBUG] Validation failed for input: '3'
+[2026-07-26 20:44:13] [DEBUG] Validation failed for input: '3'
+[2026-07-26 20:44:14] [DEBUG] Validation failed for input: '4'
+
+========================================================================
+  Genesis-Init Session Started : 2026-07-26 20:44:54
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-07-26 20:44:54] [INFO] Backup retention: 2 backups present, limit 10, nothing to remove.
+[2026-07-26 20:44:59] [DEBUG] Validation failed for input: 'Y'
+[2026-07-26 20:45:02] [DEBUG] Validation failed for input: 'y'
+[2026-07-26 20:45:15] [DEBUG] Validation failed for input: 'N'
+[2026-07-26 20:45:17] [DEBUG] Validation failed for input: 'n'
+[2026-07-26 20:45:29] [DEBUG] Validation failed for input: 'exit'
+
+========================================================================
+  Genesis-Init Session Started : 2026-07-26 20:45:34
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-07-26 20:45:34] [INFO] Backup retention: 2 backups present, limit 10, nothing to remove.
+[2026-07-26 20:45:39] [DEBUG] Validation failed for input: 'Y'
+
+========================================================================
+  Genesis-Init Session Started : 2026-07-26 20:45:42
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-07-26 20:45:42] [INFO] Backup retention: 2 backups present, limit 10, nothing to remove.
+[2026-07-26 20:46:04] [DEBUG] Validation failed for input: '3'
+[2026-07-26 20:46:28] [DEBUG] Validation failed for input: '3'
+[2026-07-26 20:46:29] [DEBUG] Validation failed for input: '4'
+[2026-07-26 20:46:54] [DEBUG] Validation failed for input: 'r3r3'
+[2026-07-26 20:46:56] [DEBUG] Validation failed for input: 'b'
+
+========================================================================
+  Genesis-Init Session Started : 2026-07-26 21:02:44
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-07-26 21:02:44] [INFO] Backup retention: 2 backups present, limit 10, nothing to remove.
+[2026-07-26 21:02:48] [INFO] No steps recorded in this session.
+[2026-07-26 21:02:48] [INFO] Session ended.
+
+========================================================================
+  Genesis-Init Session Started : 2026-07-26 21:02:55
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-07-26 21:02:55] [INFO] Backup retention: 2 backups present, limit 10, nothing to remove.
+[2026-07-26 21:03:07] [INFO] No steps recorded in this session.
+[2026-07-26 21:03:07] [INFO] Session ended.
+
+========================================================================
+  Genesis-Init Session Started : 2026-07-26 21:03:13
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-07-26 21:03:13] [INFO] Backup retention: 2 backups present, limit 10, nothing to remove.
+[2026-07-26 21:03:56] [DEBUG] Validation failed for input: ''
+[2026-07-26 21:03:58] [DEBUG] Validation failed for input: ''
+[2026-07-26 21:03:58] [DEBUG] Validation failed for input: ''
+[2026-07-26 21:03:58] [DEBUG] Validation failed for input: ''
+[2026-07-26 21:03:59] [DEBUG] Validation failed for input: ''
+[2026-07-26 21:03:59] [DEBUG] Validation failed for input: ''
+[2026-07-26 21:04:22] [INFO] No steps recorded in this session.
+[2026-07-26 21:04:22] [INFO] Session ended.
+
+========================================================================
+  Genesis-Init Session Started : 2026-07-26 21:04:24
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-07-26 21:04:24] [INFO] Backup retention: 2 backups present, limit 10, nothing to remove.
+[2026-07-26 21:05:10] [DEBUG] Validation failed for input: ''
+[2026-07-26 21:05:12] [DEBUG] Validation failed for input: '2e'
+[2026-07-26 21:05:16] [DEBUG] Validation failed for input: '123.23223232322323.24'
+[2026-07-26 21:05:51] [INFO] anonkneti.exe 192.169.202.152
+[2026-07-26 21:05:51] [DEBUG] Running: anonkneti.exe 192.169.202.152
+[2026-07-26 21:06:13] [DEBUG] [STDERR] Error from AnonymousKnetiHash command: RemoteServerFailed, <us> (nCErrno(ETIMEDOUT): A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond)
+[2026-07-26 21:06:13] [ERROR] anonkneti failed. ExitCode=4
+[2026-07-26 21:06:13] [ERROR] anonkneti execution failed for 192.169.202.152 (ExitCode 4).
+[2026-07-26 21:06:35] [INFO] anonkneti.exe 192.168.202.152
+[2026-07-26 21:06:35] [DEBUG] Running: anonkneti.exe 192.168.202.152
+[2026-07-26 21:06:36] [DEBUG] [STDOUT] 031A-05E0-D947 9b9781c24fdb43a1f25e51103924d61740cc253c
+[2026-07-26 21:06:36] [INFO] ESN detected     : 031A-05E0-D947
+[2026-07-26 21:06:36] [INFO] Keyhash detected : 9b9781c24fdb43a1f25e51103924d61740cc253c
+
+[2026-07-26 21:06:45] [SECTION] Generate hardserver.cfg
+[2026-07-26 21:06:45] [INFO] Step started: Generate hardserver.cfg
+[2026-07-26 21:06:45] [WARN] Existing hardserver config detected: C:\ProgramData\nCipher\Key Management Data\config\config
+[2026-07-26 21:06:56] [INFO] Config backed up -> C:\Users\suha.karagol\Desktop\WORK\Projects\Genesis-Init\windows\output\backups\hardserver.cfg.bak_20260726_210656
+[2026-07-26 21:06:56] [INFO] Generating nethsm_imports block for 1 HSMs: 192.168.202.152
+[2026-07-26 21:06:56] [INFO] hardserver.cfg written: C:\ProgramData\nCipher\Key Management Data\config\config
+[2026-07-26 21:06:56] [INFO] Registered HSMs: 192.168.202.152
+[2026-07-26 21:06:56] [WARN] REMINDER: Keyhash is left as 40 zeros.
+[2026-07-26 21:06:56] [INFO] Step completed: Generate hardserver.cfg | Status: Success | Duration: 10.8s
+
+[2026-07-26 21:06:56] [SECTION] nethsmenroll for all HSMs
+[2026-07-26 21:06:56] [INFO] Step started: nethsmenroll for all HSMs
+
+[2026-07-26 21:06:56] [SECTION] nethsmenroll - Client Enrollment (192.168.202.152)
+[2026-07-26 21:06:56] [INFO] nethsmenroll.exe --force 192.168.202.152
+[2026-07-26 21:06:56] [DEBUG] Running: nethsmenroll.exe --force 192.168.202.152
+[2026-07-26 21:07:04] [ERROR] nethsmenroll failed. ExitCode=1
+[2026-07-26 21:07:04] [ERROR] nethsmenroll.exe failed (ExitCode 1). See console output.
+[2026-07-26 21:07:28] [INFO] Step completed: nethsmenroll for all HSMs | Status: Failed | Duration: 32.4s
+[2026-07-26 21:07:56] [ERROR] RFS is unreachable at 192.168.222.222.
+[2026-07-26 21:08:21] [INFO] anonkneti.exe 192.168.222.222
+[2026-07-26 21:08:21] [DEBUG] Running: anonkneti.exe 192.168.222.222
+[2026-07-26 21:08:42] [DEBUG] [STDERR] Error from AnonymousKnetiHash command: RemoteServerFailed, <us> (nCErrno(ETIMEDOUT): A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond)
+[2026-07-26 21:08:42] [ERROR] anonkneti failed. ExitCode=4
+[2026-07-26 21:08:42] [ERROR] anonkneti execution failed for 192.168.222.222 (ExitCode 4).
+[2026-07-26 21:08:54] [INFO] anonkneti.exe 192.168.202.152
+[2026-07-26 21:08:54] [DEBUG] Running: anonkneti.exe 192.168.202.152
+[2026-07-26 21:08:55] [DEBUG] [STDOUT] 031A-05E0-D947 9b9781c24fdb43a1f25e51103924d61740cc253c
+[2026-07-26 21:08:55] [INFO] ESN detected     : 031A-05E0-D947
+[2026-07-26 21:08:55] [INFO] Keyhash detected : 9b9781c24fdb43a1f25e51103924d61740cc253c
+
+[2026-07-26 21:09:00] [SECTION] Generate hardserver.cfg
+[2026-07-26 21:09:00] [INFO] Step started: Generate hardserver.cfg
+[2026-07-26 21:09:00] [WARN] Existing hardserver config detected: C:\ProgramData\nCipher\Key Management Data\config\config
+[2026-07-26 21:09:05] [INFO] Config backed up -> C:\Users\suha.karagol\Desktop\WORK\Projects\Genesis-Init\windows\output\backups\hardserver.cfg.bak_20260726_210905
+[2026-07-26 21:09:05] [INFO] Generating nethsm_imports block for 1 HSMs: 192.168.202.152
+[2026-07-26 21:09:05] [INFO] hardserver.cfg written: C:\ProgramData\nCipher\Key Management Data\config\config
+[2026-07-26 21:09:05] [INFO] Registered HSMs: 192.168.202.152
+[2026-07-26 21:09:05] [WARN] REMINDER: Keyhash is left as 40 zeros.
+[2026-07-26 21:09:05] [INFO] Step completed: Generate hardserver.cfg | Status: Success | Duration: 4.6s
+
+[2026-07-26 21:09:05] [SECTION] nethsmenroll for all HSMs
+[2026-07-26 21:09:05] [INFO] Step started: nethsmenroll for all HSMs
+
+[2026-07-26 21:09:05] [SECTION] nethsmenroll - Client Enrollment (192.168.202.152)
+[2026-07-26 21:09:05] [INFO] nethsmenroll.exe --force 192.168.202.152
+[2026-07-26 21:09:05] [DEBUG] Running: nethsmenroll.exe --force 192.168.202.152
+[2026-07-26 21:09:14] [ERROR] nethsmenroll failed. ExitCode=1
+[2026-07-26 21:09:14] [ERROR] nethsmenroll.exe failed (ExitCode 1). See console output.
+[2026-07-26 21:09:26] [INFO] Step completed: nethsmenroll for all HSMs | Status: Success | Duration: 20.9s
+
+[2026-07-26 21:09:26] [SECTION] rfs-sync setup
+[2026-07-26 21:09:26] [INFO] Step started: rfs-sync setup
+
+[2026-07-26 21:09:26] [SECTION] rfs-sync - Setup (192.168.202.102)
+[2026-07-26 21:09:26] [INFO] rfs-sync.exe --setup --no-authenticate 192.168.202.102
+[2026-07-26 21:09:26] [DEBUG] Running: rfs-sync.exe --setup --no-authenticate 192.168.202.102
+[2026-07-26 21:09:27] [DEBUG] [STDOUT] No current RFS synchronization configuration.
+Configuration successfully written; new config details:
+Using RFS at 192.168.202.102:9004
+Authenticating to the RFS using the hardserver software KNETI.
+[2026-07-26 21:09:27] [INFO] rfs-sync setup completed. RFS: 192.168.202.102
+[2026-07-26 21:09:27] [INFO] Step completed: rfs-sync setup | Status: Success | Duration: 1.1s
+
+[2026-07-26 21:09:27] [SECTION] rfs-sync update
+[2026-07-26 21:09:27] [INFO] Step started: rfs-sync update
+
+[2026-07-26 21:09:27] [SECTION] rfs-sync - Update (Security World Sync)
+[2026-07-26 21:09:27] [INFO] rfs-sync.exe --update
+[2026-07-26 21:09:27] [DEBUG] Running: rfs-sync.exe --update
+[2026-07-26 21:09:28] [DEBUG] [STDOUT] Starting synchronisation, task ID 6a664d57.150711e6540b6de2
+[2026-07-26 21:09:28] [DEBUG] [STDERR] Unable to query generation file: ServerAccessDenied
+[2026-07-26 21:09:28] [INFO] Security World sync completed.
+[2026-07-26 21:09:28] [INFO] Step completed: rfs-sync update | Status: Success | Duration: 1s
+
+[2026-07-26 21:09:28] [SECTION] enquiry verification
+[2026-07-26 21:09:28] [INFO] Step started: enquiry verification
+
+[2026-07-26 21:09:28] [SECTION] enquiry - Connection Verification
+[2026-07-26 21:09:28] [INFO] enquiry.exe
+[2026-07-26 21:09:28] [DEBUG] Running: enquiry.exe 
+[2026-07-26 21:09:29] [DEBUG] [STDOUT] Server:
+ enquiry reply flags  none
+ enquiry reply level  Six
+ serial number        031A-05E0-D947
+ mode                 operational
+ version              13.6.11
+ speed index          7922
+ rec. queue           374..574
+ level one flags      Hardware HasTokens SupportsCommandState
+ version string       13.6.11-223-40eab497, 13.5.6-104-d14de646, Bootloader: 1.2.3, Security Processor: 13.5.6 , 13.6.12-312-a52430a8
+ checked in           00000000680a662a Thu Apr 24 19:26:18 2025
+ level two flags      none
+ max. write size      8192
+ level three flags    KeyStorage
+ level four flags     OrderlyClearUnit HasRTC HasNVRAM HasNSOPermsCmd ServerHasPollCmds FastPollSlotList HasSEE HasKLF HasShareACL HasFeatureEnable HasFileOp HasLongJobs ServerHasLongJobs AESModuleKeys NTokenCmds JobFragmentation LongJobsPreferred Type2Smartcard ServerHasCreateClient HasInitialiseUnitEx AlwaysUseStrongPrimes Type3Smartcard HasKLF2
+ module type code     0
+ module type          nShield Hardserver
+ product name         nFast server
+ device name          
+ EnquirySix version   8
+ impath kx groups     DHPrime1024 DHPrime3072 DHPrime3072Ex DHPrimeMODP3072 DHPrimeMODP3072mGCM
+ feature ctrl flags   none
+ features enabled     none
+ version serial       0
+ level six flags      none
+ remote port (IPv4)   9004
+ kneti hash           afc3484c02acd05e4871ead4df97c75332f83933
+ rec. LongJobs queue  0
+ SEE machine type     None
+ supported KML types 
+ active modes         none
+ remote port (IPv6)   9004
+
+Module #1:
+ enquiry reply flags  none
+ enquiry reply level  Six
+ serial number        031A-05E0-D947
+ mode                 operational
+ version              13.5.6
+ speed index          7922
+ rec. queue           43..152
+ level one flags      Hardware HasTokens SupportsCommandState SupportsHotReset
+ version string       13.5.6-104-d14de646, Bootloader: 1.2.3, Security Processor: 13.5.6 , 13.6.12-312-a52430a8
+ checked in           0000000067b36f64 Mon Feb 17 20:18:28 2025
+ level two flags      none
+ max. write size      8192
+ level three flags    KeyStorage
+ level four flags     OrderlyClearUnit HasRTC HasNVRAM HasNSOPermsCmd ServerHasPollCmds FastPollSlotList HasSEE HasKLF HasShareACL HasFeatureEnable HasFileOp HasLongJobs ServerHasLongJobs AESModuleKeys NTokenCmds JobFragmentation LongJobsPreferred Type2Smartcard ServerHasCreateClient HasInitialiseUnitEx AlwaysUseStrongPrimes Type3Smartcard HasKLF2
+ module type code     12
+ module type          nShield Connect XC
+ product name         nC3025E/nC4035E/nC4335N
+ device name          Rt23
+ EnquirySix version   9
+ impath kx groups     DHPrime1024 DHPrime3072 DHPrime3072Ex DHPrimeMODP3072
+ feature ctrl flags   LongTerm
+ features enabled     StandardKM EllipticCurve ECCMQV AcceleratedECC HSMSpeed2
+ version serial       37
+ connection status    OK
+ connection info      esn = 031A-05E0-D947; addr = INET/192.168.202.152/9004; ku hash = 9b9781c24fdb43a1f25e51103924d61740cc253c, mech = Any
+ image version        13.6.12-274-a52430a8
+ level six flags      SerialConsoleAvailable Type3SmartcardRevB
+ max exported modules 3
+ rec. LongJobs queue  42
+ SEE machine type     PowerPCELF
+ supported KML types  DSAp1024s160 DSAp3072s256 NISTp521hSHA256 NISTp521hSHA512 NISTp256hSHA1 NISTp256hSHA256
+ using impath kx grp  DHPrimeMODP3072mGCM
+ active modes         AuditLogging UseFIPSApprovedInternalMechanisms AlwaysUseStrongPrimes
+ active KML type      DSAp3072s256
+ world hash mech      SHA1Hash
+ strong hash mech     SHA256Hash
+ hardware status      OK
+
+Module #2:
+ Not Present
+[2026-07-26 21:09:29] [INFO] enquiry parsed. Operational module count: 1
+[2026-07-26 21:09:29] [INFO] All expected HSMs operational
+[2026-07-26 21:09:29] [INFO] Step completed: enquiry verification | Status: Success | Duration: 1.1s
+
+[2026-07-26 21:09:29] [SECTION] nfkminfo cross-check
+[2026-07-26 21:09:29] [INFO] Step started: nfkminfo cross-check
+
+[2026-07-26 21:09:29] [SECTION] nfkminfo - Module State Verification
+[2026-07-26 21:09:29] [INFO] nfkminfo.exe
+[2026-07-26 21:09:29] [DEBUG] Running: nfkminfo.exe 
+[2026-07-26 21:09:30] [DEBUG] [STDOUT] World
+ generation  2
+ state       0x37270009 Initialised Usable Recovery !PINRecovery !ExistingClient RTC NVRAM FTO AlwaysUseStrongPrimes !DisablePKCS1Padding !PpStrengthCheck AuditLogging SEEDebug
+ n_modules   2
+ hknso       49a5a835f78c7995f954329c529b9dffeda34c0d
+ hkm         e423a19fcfd8aaa00f341e1a89b6b3805cc7ad50 (type Rijndael)
+ hkmwk       c2be99fe1c77f1b75d48e2fd2df8dffc0c969bcb
+ hkre        2a04869e9b3fe9242908553fc504ec055d3241e1
+ hkra        d5a3478c90edf3a0949d6a62ca76057754c399b6
+ hkmc        c879f0346bcf481f4f96f2cff4ef6624fbf709b2
+ hkrtc       0b1a4ca4373d47ff9bc4775903b43a131353067d
+ hknv        e112a0ad3a2bb282765bb9a9b9a37d286a3e4b11
+ hkdsee      c14ac55e63d4ca5afdfc89e5fbe31b38dc54fa9f
+ hkfto       d68cc32da69edfdfdd452c5f7316539ffa8db0fa
+ hkmnull     0100000000000000000000000000000000000000
+ ex.client   none
+ k-out-of-n  1/2
+ other quora m=1 r=1 nv=1 rtc=1 dsee=1 fto=1 
+ createtime  2026-07-06 15:35:08
+ nso timeout 10 min
+ ciphersuite DLf3072s256mAEScSP800131Ar1
+ min pp      0 chars
+ mode        none
+
+Module #1
+ generation 2
+ state      0x2 Usable
+ flags      0x10000 ShareTarget
+ n_slots    2
+ esn        031A-05E0-D947
+ hkml       370742104d714f6ecaa2b20f3dfc7745cdb299bb
+
+Module #1 Slot #0 IC 237
+ generation    1
+ phystype      SmartCard
+ slotlistflags 0x2 SupportsAuthentication
+ state         0x7 Error
+ flags         0x0
+ shareno       0
+ shares        
+ error         UnlistedCard
+No Cardset
+
+Module #1 Slot #1 IC 0
+ generation    1
+ phystype      SoftToken
+ slotlistflags 0x0
+ state         0x2 Empty
+ flags         0x0
+ shareno       0
+ shares        
+ error         OK
+No Cardset
+
+Module #2
+ generation 1
+ state      0xd UnusedTableEntry
+
+No Pre-Loaded Objects
+[2026-07-26 21:09:30] [INFO] nfkminfo parsed. Usable module count: 0
+[2026-07-26 21:09:30] [WARN] HSM 031A-05E0-D947 state in nfkminfo is not Usable.
+[2026-07-26 21:09:37] [INFO] Step completed: nfkminfo cross-check | Status: Failed | Duration: 7.5s
+[2026-07-26 21:41:08] [INFO] 
+============================================================
+  GENESIS-INIT SESSION SUMMARY
+============================================================
+  #   Step                     Duration   Status
+  -   ----                     --------   ------
+  1   Generate hardserver.cfg  10.8s      OK
+  2   nethsmenroll for all ... 32.4s      FAILED
+  3   Generate hardserver.cfg  4.6s       OK
+  4   nethsmenroll for all ... 20.9s      OK
+  5   rfs-sync setup           1.1s       OK
+  6   rfs-sync update          1.0s       OK
+  7   enquiry verification     1.1s       OK
+  8   nfkminfo cross-check     7.5s       FAILED
+============================================================
+  Total session duration: 36m 43s
+  Result: FAILED (2 steps failed)
+============================================================
+[2026-07-26 21:41:08] [INFO] Session ended.

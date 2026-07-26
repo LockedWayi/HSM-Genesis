@@ -1,0 +1,67 @@
+
+========================================================================
+  Genesis-Init Session Started : 2026-06-25 14:37:23
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+
+========================================================================
+  Genesis-Init Session Started : 2026-06-25 14:38:29
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-06-25 14:38:29] [INFO] Admin yetki kontrolu: BASARILI (suha.karagol)
+
+========================================================================
+  Genesis-Init Session Started : 2026-06-25 14:39:26
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-06-25 14:39:26] [INFO] Admin yetki kontrolu: BASARILI (suha.karagol)
+[2026-06-25 14:39:26] [DEBUG] Modul yuklendi: C:\Users\suha.karagol\Desktop\WORK\HSM\Genesis-Init\vendors\entrust\HardserverConfig.ps1
+
+========================================================================
+  Genesis-Init Session Started : 2026-06-25 14:41:13
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-06-25 14:41:13] [INFO] Admin yetki kontrolu: BASARILI (suha.karagol)
+[2026-06-25 14:41:13] [DEBUG] Modul yuklendi: C:\Users\suha.karagol\Desktop\WORK\HSM\Genesis-Init\vendors\entrust\HardserverConfig.ps1
+
+========================================================================
+  Genesis-Init Session Started : 2026-06-25 14:43:44
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-06-25 14:43:44] [INFO] Admin yetki kontrolu: BASARILI (suha.karagol)
+[2026-06-25 14:43:44] [DEBUG] Modul yuklendi: C:\Users\suha.karagol\Desktop\WORK\HSM\Genesis-Init\vendors\entrust\HardserverConfig.ps1
+[2026-06-25 14:43:45] [DEBUG] Modul yuklendi: C:\Users\suha.karagol\Desktop\WORK\HSM\Genesis-Init\vendors\entrust\BinaryRunner.ps1
+[2026-06-25 14:43:49] [INFO] Rol secildi: 2
+[2026-06-25 14:43:49] [INFO] ROL: Client Server Kurulumu
+[2026-06-25 14:44:33] [INFO] Client kurulum inputlari tamamlandi. HSM: 192.168.202.153 | RFS: 192.168.202.100
+[2026-06-25 14:44:33] [INFO] === CLIENT SERVER KURULUM WORKFLOW BASLADI ===
+
+========================================================================
+  Genesis-Init Session Started : 2026-06-25 14:48:48
+  User                         : suha.karagol
+  Hostname                     : 3001-413-684-WS
+========================================================================
+
+[2026-06-25 14:48:48] [INFO] Admin yetki kontrolu: BASARILI (suha.karagol)
+[2026-06-25 14:48:52] [INFO] Rol secildi: 2
+[2026-06-25 14:48:52] [INFO] ROL: Client Server Kurulumu
+[2026-06-25 14:48:58] [INFO] RFS IP alindi: 192.168.202.100
+[2026-06-25 14:49:07] [INFO] HSM 1 IP alindi: 192.168.202.153
+[2026-06-25 14:49:07] [INFO] Client kurulum inputlari tamamlandi. RFS: 192.168.202.100 | HSMs: 192.168.202.153
+[2026-06-25 14:49:07] [INFO] === CLIENT SERVER KURULUM WORKFLOW BASLADI ===
+
+[2026-06-25 14:49:07] [SECTION] nethsmenroll - HSM Enrollment (1 adet)
+
+[2026-06-25 14:49:07] [SECTION] nethsmenroll - Client Enrollment (192.168.202.153)
+[2026-06-25 14:49:07] [INFO] nethsmenroll.exe 192.168.202.153
+[2026-06-25 14:49:07] [DEBUG] Calistiriliyor: nethsmenroll.exe 192.168.202.153
