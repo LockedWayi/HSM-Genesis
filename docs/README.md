@@ -1,12 +1,4 @@
-# HSM-Genesis
 
-**Multi-vendor HSM Day 0 Provisioning Automation**
-
-Interactive PowerShell automation that turns the repetitive, error-prone manual steps of HSM Day 0 provisioning — running vendor CLI binaries in the correct order, copy-pasting identity values between terminals, hand-editing strict-syntax config files — into a single guided workflow with validation, backups, idempotency checks, and error recovery at every step.
-
-Built on a vendor-plugin architecture: core engine (state machine, validation, logging, step tracking) is vendor-agnostic; each vendor lives under `vendors/<name>/` with its own binary wrappers and config logic.
-
-```
 '##::::'##::'######::'##::::'##:::::'######:::'########:'##::: ##:'########::'######::'####::'######::
  ##:::: ##:'##... ##: ###::'###::::'##... ##:: ##.....:: ###:: ##: ##.....::'##... ##:. ##::'##... ##:
  ##:::: ##: ##:::..:: ####'####:::: ##:::..::: ##::::::: ####: ##: ##::::::: ##:::..::: ##:: ##:::..::
@@ -15,7 +7,14 @@ Built on a vendor-plugin architecture: core engine (state machine, validation, l
  ##:::: ##:'##::: ##: ##:.:: ##:::: ##::: ##:: ##::::::: ##:. ###: ##:::::::'##::: ##:: ##::'##::: ##:
  ##:::: ##:. ######:: ##:::: ##::::. ######::: ########: ##::. ##: ########:. ######::'####:. ######::
 ..:::::..:::......:::..:::::..::::::......::::........::..::::..::........:::......:::....:::......:::
-```
+
+# HSM-Genesis
+
+**Multi-vendor HSM Day 0 Provisioning Automation**
+
+Interactive PowerShell automation that turns the repetitive, error-prone manual steps of HSM Day 0 provisioning — running vendor CLI binaries in the correct order, copy-pasting identity values between terminals, hand-editing strict-syntax config files — into a single guided workflow with validation, backups, idempotency checks, and error recovery at every step.
+
+Built on a vendor-plugin architecture: core engine (state machine, validation, logging, step tracking) is vendor-agnostic; each vendor lives under `vendors/<name>/` with its own binary wrappers and config logic.
 
 ---
 
