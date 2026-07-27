@@ -1,0 +1,17 @@
+﻿# Output directories - contain sensitive HSM data
+windows/output/logs/
+windows/output/backups/
+windows/output/push-workdir/
+
+# Keep directory structure
+!windows/output/logs/.gitkeep
+!windows/output/backups/.gitkeep
+!windows/output/push-workdir/.gitkeep
+
+# PowerShell
+*.pssproj
+*.psproj
+
+# Windows
+Thumbs.db
+Desktop.ini
