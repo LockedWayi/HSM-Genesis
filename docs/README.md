@@ -1,208 +1,174 @@
-# Project Genesis — Genesis-Init
+# HSM-Genesis
 
-Interactive bootstrap automation for Entrust nShield Connect (network-attached) HSM Day 0 provisioning.
+**Multi-vendor HSM Day 0 Provisioning Automation**
 
----
+Interactive PowerShell automation that turns the repetitive, error-prone manual steps of HSM Day 0 provisioning — running vendor CLI binaries in the correct order, copy-pasting identity values between terminals, hand-editing strict-syntax config files — into a single guided workflow with validation, backups, idempotency checks, and error recovery at every step.
 
-## 1. Purpose
-
-Day 0 provisioning of nShield Connect HSMs involves repetitive, error-prone manual steps: running CLI binaries in sequence, copy-pasting ESN/keyhash values between terminal output and config files, hand-editing `hardserver.cfg` with strict syntax rules, and tracking which servers have been enrolled where.
-
-Genesis-Init automates this into a single interactive script. The engineer runs one command, answers a series of prompts, and the script performs the correct sequence of binary calls, config edits, and validations — with backups, idempotency checks, and clear error recovery at every step.
-
-**Current platform: Windows Server, PowerShell 5.1.**
-**Planned platform: Linux (separate implementation, not a port — see Section 9).**
-
----
-
-## 2. Design Principles
-
-These are non-negotiable and should be preserved across all future changes:
-
-1. **Dot-source, single-directory packaging.** No PowerShell modules, no `$env:PSModulePath` dependency. The entire project is a folder that can be zipped, copied to a server, and run — including in air-gapped environments.
-
-2. **No credential storage.** Day 0 provisioning as designed here requires no passwords, PINs, or tokens to be entered or persisted. If a future requirement needs credentials, this must be treated as a deliberate architectural addition, not bolted on.
-
-3. **Detect & Prompt idempotency.** Before overwriting any existing config, the script detects it, shows the user what will happen, and requires explicit confirmation. Nothing is silently overwritten.
-
-4. **No crash on bad input.** Every user input goes through a validator. Invalid input re-prompts; it never throws an unhandled exception or exits the process.
-
-5. **State machine navigation, not linear script.** The user can go back to a previous menu, retry a failed step, skip an optional step, or abort — without the whole script dying. `throw` is reserved for genuinely unrecoverable conditions (missing core files at startup); workflow-level errors return to a previous state instead.
-
-6. **ASCII encoding for all nShield config files.** `hardserver.cfg` and any `hsm-<ESN>\config` file must be written with `[System.Text.Encoding]::ASCII` via `[System.IO.File]::WriteAllText`/`WriteAllLines`. `Out-File`/`Set-Content` are avoided because they can introduce BOM or UTF-16, which nShield's config parser rejects.
-
-7. **String.Replace, not regex, for template substitution.** `[regex]::Replace` combined with `[regex]::Escape` corrupts CRLF sequences into literal `\r\n` text in the output. Plain `.Replace()` is used instead.
-
-8. **English only, program-wide.** All console output, log messages, and code comments are in English. This is a deliberate simplicity choice over building an i18n layer for a single-vendor tool. (See `GENESIS-FLOW-v2.md` for the one exception under discussion.)
-
-9. **Global scope for cross-module state.** PowerShell dot-sourcing does not share `$script:`-scoped variables across separately dot-sourced files reliably. All cross-module state uses `$global:Genesis*` naming (e.g. `$global:GenesisNfastHome`, `$global:GenesisLogFile`) to avoid ambiguity.
-
----
-
-## 3. Directory Structure
-
-The repository root contains one subdirectory per platform implementation.
-**All paths in this document and in every modification prompt are given
-relative to `windows/`** (the current, active implementation) unless stated
-otherwise — e.g. "core/Engine.ps1" means `windows/core/Engine.ps1` on disk.
+Built on a vendor-plugin architecture: core engine (state machine, validation, logging, step tracking) is vendor-agnostic; each vendor lives under `vendors/<name>/` with its own binary wrappers and config logic.
 
 ```
-Genesis-Init/                                   # Repository root
-├── windows/                                     # Active implementation (this document's scope)
-│   ├── Genesis-Init.ps1                        # Entry point — the only file the user runs directly
-│   │
-│   ├── core/
-│   │   ├── Logger.ps1                          # Write-GenesisLog, Write-GenesisSection
-│   │   ├── Engine.ps1                          # Orchestration: module loading, state machine, workflows
-│   │   ├── Validator.ps1                       # Read-ValidatedInput + validators
-│   │   ├── StepTracker.ps1                     # [PLANNED] Start/Complete-GenesisStep, Show-GenesisSummary
-│   │   ├── MenuNavigation.ps1                  # [PLANNED] State constants, menu display functions
-│   │   └── Cleanup.ps1                         # [PLANNED] Backup retention
-│   │
-│   ├── vendors/
-│   │   └── entrust/
-│   │       ├── BinaryRunner.ps1                # nfast binary wrappers (anonkneti, rfs-setup, etc.)
-│   │       ├── HardserverConfig.ps1            # Template rendering, surgical hs_clients editing
-│   │       └── templates/
-│   │           └── hardserver.cfg.template     # Base config with {{NETHSM_DYNAMIC_BLOCK}} placeholder
-│   │
-│   └── output/
-│       ├── logs/                                # genesis_YYYYMMDD.log (timestamped, ASCII)
-│       ├── backups/                             # hardserver.cfg.bak_YYYYMMDD_HHMMSS
-│       └── push-workdir/                        # [PLANNED] Staging area for cfg-pushnethsm
-│
-├── linux/                                       # [NOT STARTED] Future parallel implementation — see §9
-│
-├── README.md                                    # This file
-└── GENESIS-FLOW-v2.md                           # Authoritative step-by-step flow specification
+'##::::'##::'######::'##::::'##:::::'######:::'########:'##::: ##:'########::'######::'####::'######::
+ ##:::: ##:'##... ##: ###::'###::::'##... ##:: ##.....:: ###:: ##: ##.....::'##... ##:. ##::'##... ##:
+ ##:::: ##: ##:::..:: ####'####:::: ##:::..::: ##::::::: ####: ##: ##::::::: ##:::..::: ##:: ##:::..::
+ #########:. ######:: ## ### ##:::: ##::'####: ######::: ## ## ##: ######:::. ######::: ##::. ######::
+ ##.... ##::..... ##: ##. #: ##:::: ##::: ##:: ##...:::: ##. ####: ##...:::::..... ##:: ##:::..... ##:
+ ##:::: ##:'##::: ##: ##:.:: ##:::: ##::: ##:: ##::::::: ##:. ###: ##:::::::'##::: ##:: ##::'##::: ##:
+ ##:::: ##:. ######:: ##:::: ##::::. ######::: ########: ##::. ##: ########:. ######::'####:. ######::
+..:::::..:::......:::..:::::..::::::......::::........::..::::..::........:::......:::....:::......:::
 ```
 
-`[PLANNED]` marks files that do not exist yet as of this writing and are the subject of the upcoming modification prompts. `README.md` and `GENESIS-FLOW-v2.md` live at the repository root, not inside `windows/`, since they describe (or will describe) both implementations.
+---
+
+## Supported Vendors
+
+| Vendor  | Model Family                                     | Status                          |
+|---------|--------------------------------------------------|---------------------------------|
+| Entrust | nShield Connect (network-attached)               | ✅ Implemented, hardware-tested |
+| Thales  | Luna Network HSM (Password-based authentication) | 🔜 Planned                      |
+
+
+New vendors are added as self-contained modules under `vendors/` without touching the core engine.
 
 ---
 
-## 4. What Each Existing File Does
+## What It Does — Entrust nShield Connect
 
-**Genesis-Init.ps1**
-Entry point. Requires Administrator (`#Requires -RunAsAdministrator`). Resolves `$PSScriptRoot`, dot-sources `core/Logger.ps1` then `core/Engine.ps1`, calls `Start-GenesisEngine`. Contains no business logic itself.
+Two supported server roles, selected interactively at runtime:
 
-**core/Logger.ps1**
-`Write-GenesisLog -Level <DEBUG|INFO|WARN|ERROR> -Message <string>` — writes to console (color-coded) and to `output/logs/genesis_YYYYMMDD.log` (ASCII, timestamped). `Write-GenesisSection -Title <string>` — prints a visual section header for readability during long runs. `Initialize-Logger` sets up the log file and writes a session header. State is held in `$global:GenesisLogFile` / `$global:GenesisLogInitialized`.
+### RFS Server Setup
+Configures the machine as the Remote File System (RFS) for one or more nShield Connect HSMs:
 
-**core/Engine.ps1**
-Currently: admin check, dot-source loading of vendor modules (`HardserverConfig.ps1`, `BinaryRunner.ps1`), a simple role menu (RFS / Client), and two workflow functions `_Invoke-RfsServerSetup` / `_Invoke-ClientServerSetup` that call into `BinaryRunner.ps1` and `HardserverConfig.ps1` in sequence. This is the file being refactored into a state machine per `GENESIS-FLOW-v2.md`.
-
-**vendors/entrust/BinaryRunner.ps1**
-Wraps every nfast CLI binary used in the workflows: `anonkneti`, `rfs-setup`, `cfg-pushnethsm`, `nethsmenroll`, `rfs-sync`, `enquiry`. The core primitive is `_Invoke-NfastBinary`, which runs a binary via `Start-Process`, redirects stdout/stderr to temp files (unless the binary needs interactive stdin, e.g. `nethsmenroll`), and returns exit code + captured output. Public wrapper functions parse specific outputs (e.g. `Invoke-Anonkneti` extracts ESN and Keyhash via regex).
-
-**vendors/entrust/HardserverConfig.ps1**
-Two responsibilities:
-1. `New-EntrustHardserverConfig` — renders `hardserver.cfg` from the template, filling in `{{NETHSM_DYNAMIC_BLOCK}}` with one or more HSM entries (multi-entry separator: a single `-` line between entries, per nShield config syntax).
-2. `Add-HsClientEntry` — surgically edits an existing HSM-side config (`hsm-<ESN>\config`) to add a client entry under `[hs_clients]`, using a `-----` (5-hyphen) separator convention observed in production. Does not touch any other section of the file.
-
-**vendors/entrust/templates/hardserver.cfg.template**
-A real production `hardserver.cfg`, spliced so the `[nethsm_imports]` section's field definitions are replaced with a single `{{NETHSM_DYNAMIC_BLOCK}}` placeholder. All other sections are untouched from the original.
-
----
-
-## 5. The Two Supported Roles
-
-### RFS (Remote File System) Server Setup
-This server acts as the RFS for one or more HSMs. Workflow: verify HSM reachability (`anonkneti`), enroll the HSM to this RFS (`rfs-setup --force`), whitelist client IPs (`rfs-setup --gang-client --write-noauth`), edit the HSM's own config to register those clients (`Add-HsClientEntry`), and push the updated config back to the HSM (`cfg-pushnethsm`).
+1. HSM reachability pre-flight (`anonkneti`) — captures ESN and KNETI keyhash
+2. RFS enrollment (`rfs-setup --force`)
+3. Client IP whitelisting (`rfs-setup --gang-client --write-noauth`)
+4. Waits for the HSM to export its config after the RFS IP is entered on the HSM front panel (guided manual step)
+5. Surgical `[hs_clients]` edit on the HSM-side config — if there are existing entries doest not overwrite them, other sections are left untouched, adds new clients. privileged/unprivileged connection mode selection
+6. Pushes the modified config back to the HSM (`cfg-pushnethsm`)
+7. Verifies the Security World status (`nfkminfo` HKNSO check)
 
 ### Client Server Setup
-This server is a client of an existing RFS. Workflow: verify RFS reachability (ping), generate/update this server's own `hardserver.cfg` with the HSM(s) it needs to talk to, enroll to each HSM (`nethsmenroll --force`, interactive), sync Security World files from RFS (`rfs-sync --setup` then `--update`), verify HSM state (`enquiry`, then `nfkminfo` as cross-check), and enable PKCS#11 loadsharing (`cknfastrc`).
+Configures the machine as a crypto client of an existing RFS:
 
-Full step-by-step detail, including every decision branch, error message, and recovery path, is specified in **`GENESIS-FLOW-v2.md`** — that document is authoritative for exact behavior; this README is the map, not the territory.
+1. RFS reachability check (ping)
+2. Per-HSM reachability pre-flight (`anonkneti`)
+3. Per-HSM privileged/unprivileged connection mode selection
+4. HSM enrollment (`nethsmenroll --force [-p]`, interactive — `[nethsm_imports]` is written by the binary itself, surgically)
+5. Security World sync from RFS (`rfs-sync --force --setup`, then `--update`)
+6. Connection verification (`enquiry`) and module state cross-check (`nfkminfo`)
+7. Security World initialization check (HKNSO hash)
+8. PKCS#11 configuration (`cknfastrc` with loadsharing)
 
----
-
-## 6. Known Constraints From Production Testing
-
-These were discovered by testing against real hardware and must not be regressed:
-
-| Constraint | Why |
-|---|---|
-| `remote_esn` and `ntoken_esn` lines must be **omitted entirely** when empty, not written as `field=` | nShield's config parser enforces "if present, exactly 14 characters" for ESN fields. An empty value fails validation with `empty string (length must be between 14 and 14)`. |
-| Multi-entry sections need exactly one `-` line between entries (`[nethsm_imports]`) | nShield config syntax rule, confirmed against the real config file header. |
-| Multi-entry client blocks in HSM-side config use `-----` (5 hyphens) | Observed convention in the production `hs_clients` section — different separator than `[nethsm_imports]`. |
-| `hardserver.cfg` must be generated **before** running `nethsmenroll`, not after | `nethsmenroll` reads the existing config; if it's missing or malformed, enrollment fails. Order matters. |
-| `nethsmenroll` must run without stdout/stderr redirection | It can prompt interactively ("Is the above correct? (yes/no):"). Redirecting output hides the prompt and the process hangs waiting for stdin. |
-| `Start-Process -ArgumentList` must not receive an empty array | Passing `@()` throws a parameter validation error. Use splatting to omit `-ArgumentList` entirely when there are no arguments (e.g. `enquiry` takes none). |
-| Template substitution must use `.Replace()`, not `[regex]::Replace` + `[regex]::Escape` | The escape step converts real CRLF bytes into the literal text `\r\n`, which gets written to disk as-is and breaks the config parser. |
-| `enquiry` output parsing must skip the "Server:" block and only inspect "Module #N:" blocks | The Server block describes the driver host, not the HSM. Searching the whole output for `mode operational` can produce false positives/negatives. |
-| `nfkminfo` output: only the `state` line immediately following `Module #N` (before any `Slot` sub-block) is relevant | `Slot #0` / `Slot #1` blocks have their own `state` lines describing smartcard/softcard slots, not the module itself. |
+Every step supports retry / change input / skip / abort without crashing the session. A timing summary table is printed at the end of each run.
 
 ---
 
-## 7. Bugs Fixed During Development (Reference Only)
+## Requirements
 
-| Symptom | Root Cause | Fix |
-|---|---|---|
-| `_Invoke-ClientServerSetup` not recognized | `$null = . $file` broke function registration in nested dot-source context | Removed `$null =`, use plain `. $file` |
-| Cross-module variables invisible | `$script:` scope doesn't cross separately dot-sourced files reliably | Promoted to `$global:Genesis*` |
-| `nethsmenroll` hung indefinitely | stdout redirected, hiding an interactive yes/no prompt | Removed redirection for this binary specifically |
-| "entry already exists" on second run | Missing `--force` flag | Added `--force` |
-| `hardserver.cfg` contained literal `\r\n` text | `[regex]::Escape()` on the replacement string | Switched to `String.Replace()` |
-| `nethsmenroll`: "bad integer" | Stale malformed config from the bug above, read before the fix took effect | Fixed at the source; re-run regenerates a clean file |
-| `nethsmenroll`: "empty string (length must be between 14 and 14)" | `remote_esn=` written with no value instead of omitted | **Fix pending** — see `GENESIS-FLOW-v2.md` §8, `_Build-NethsmEntry` |
-| `_Invoke-NfastBinary` failed on `enquiry` (no args) | `Start-Process -ArgumentList @()` throws | Splatting: only add `-ArgumentList` key when `$Arguments.Count -gt 0` |
+| Requirement                   | Detail                                                                   |
+|-------------------------------|--------------------------------------------------------------------------|
+| OS (tested)                   | Windows Server 2019, Windows 11 Pro 25H2                                 |
+| PowerShell                    | 5.1 (ships with both of the above)                                       |
+| Privileges                    | Administrator (enforced via `#Requires -RunAsAdministrator`)             |
+| Vendor software               | Entrust nShield Security World client software installed                 |
+| Tested client versions        | 13.6.11, 13.6.12, 13.6.15                                                |
+| Environment                   | `NFAST_HOME` set (or default `C:\Program Files\nCipher\nfast` valid)     |
+| Network                       | TCP/9004 open bidirectionally between this server and the HSM(s)         |
 
----
-
-## 8. Current State vs. Target State
-
-As of this writing, `core/Engine.ps1` implements a **linear** two-role workflow (see Section 4). It works end-to-end on real hardware for both roles, with the one pending fix noted above.
-
-`GENESIS-FLOW-v2.md` specifies a **target architecture** that is not yet implemented:
-- State machine navigation (menu → vendor select → role select → workflow, with back/retry/abort at every step)
-- Centralized input validation (`core/Validator.ps1`, currently absent)
-- Step timing and a summary table at the end of each run (`core/StepTracker.ps1`, currently absent)
-- Backup retention (keep newest 10, currently absent)
-- Pre-flight connectivity checks (`anonkneti` for HSM reachability, ping for RFS reachability) before collecting the rest of the inputs
-- Config push via a staging directory instead of pushing directly from `%ProgramData%` (permission safety)
-- `nfkminfo` as a cross-check after `enquiry`
-
-The migration from current state to target state is being done as a series of scoped, file-specific modification prompts (see Section 10) rather than one large rewrite, specifically to keep an AI coding agent's changes auditable and to minimize hallucinated modifications to unrelated code.
+**On other Security World client versions:** the tool edits config files by locating section headers (`[hs_clients]`, `[nethsm_imports]`) and works at the section level, so versions that keep the same section names and `syntax-version=1` config format are expected to work — but only the versions listed above have been verified against real hardware. No guarantee is made for untested versions.
 
 ---
 
-## 9. Out of Scope (For Now)
+## Installation
+No installer, no modules, no dependencies. The project is a self-contained folder — designed for air-gapped environments.
 
-- **Linux implementation.** Will be a separate, parallel implementation (bash), not a PowerShell-to-bash port. Directory structure will mirror this one under a `linux/` root. Not started yet.
-- **nToken automation.** If a client uses an nToken, the script warns and defers to manual configuration. Full automation of nToken-based enrollment is not planned in the current phase.
-- **Multi-HSM RFS setup in a single run.** The RFS workflow currently handles one HSM per run. If multiple HSMs need to become RFS targets, the script is re-run per HSM (it's idempotent, so this is safe).
-- **i18n / localization.** Program is English-only by design (see Section 2, principle 8).
+1. Download or clone the repository
+2. Copy the `windows/` folder to the target server
+3. Open an elevated PowerShell session
 
----
-
-## 10. How Changes Are Made to This Project
-
-Modifications are given to an AI coding agent (Antigravity) as a sequence of scoped prompts, each of which:
-1. Names the exact file(s) to be changed
-2. States what changes and what must NOT change
-3. Gives exact function signatures where new functions are introduced
-4. Specifies error-handling behavior precisely (this project does not tolerate silent `throw`-and-crash for recoverable errors)
-5. References `GENESIS-FLOW-v2.md` for the authoritative behavior spec rather than re-deriving it
-
-The first prompt given to the agent is always a **context-building prompt** — it reads every file in the project and this README, and confirms its understanding, before any code is touched. See `PROMPT-0-CONTEXT.md`.
-
----
-
-## 11. Prerequisites to Run
-
-- Windows Server, PowerShell 5.1+
-- Administrator privileges
-- Entrust nShield Security World client software installed
-- `NFAST_HOME` environment variable set (or default path `C:\Program Files\nCipher\nfast` must be correct)
-- Network path to target HSM(s) open on TCP/9004 (bidirectional)
-- Execution policy allowing script execution:
-  ```powershell
-  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-  ```
-
-Run with (from inside the `windows/` directory):
 ```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 cd windows
 .\Genesis-Init.ps1
 ```
+
+---
+
+## Project Structure
+
+```
+windows/
+├── Genesis-Init.ps1              # Entry point — the only file you run
+├── core/                         # Vendor-agnostic engine
+│   ├── Logger.ps1                # Timestamped console + file logging
+│   ├── Validator.ps1             # Anti-crash input validation (IPv4, int, choice, Y/N)
+│   ├── StepTracker.ps1           # Step timing + end-of-run summary table
+│   ├── Cleanup.ps1               # Backup retention (newest 10 kept)
+│   ├── MenuNavigation.ps1        # State machine states + menu screens
+│   └── Engine.ps1                # Orchestration: state machine + workflows
+├── vendors/                      # One folder per vendor — plugin model
+│   └── entrust/
+│       ├── BinaryRunner.ps1      # nfast binary wrappers with structured result objects
+│       ├── HardserverConfig.ps1  # Surgical config editing (hs_clients)
+│       └── templates/
+└── output/
+    ├── logs/                     # genesis_YYYYMMDD.log
+    ├── backups/                  # Timestamped config backups
+    └── push-workdir/             # Staging area for config push operations
+```
+
+---
+
+## Design Principles
+
+1. **Vendor-plugin architecture** — the core engine knows nothing vendor-specific; each vendor module is self-contained under `vendors/`.
+2. **Dot-source, single-directory packaging** — zip, copy, run. No `PSModulePath`, no installation.
+3. **No credential storage** — Day 0 provisioning as implemented requires no passwords, PINs, or tokens.
+4. **Detect & Prompt idempotency** — nothing is silently overwritten; existing config is detected, backed up, and confirmed.
+5. **Surgical config editing** — only the targeted section is modified; all other sections, comments, and existing entries are preserved byte-for-byte.
+6. **No crash on bad input** — every input goes through a validator; invalid input re-prompts.
+7. **State machine navigation** — back / retry / skip / abort at every step, without killing the session.
+8. **ASCII encoding for all vendor config writes** — HSM config parsers commonly reject BOM/UTF-16.
+9. **Structured result objects** — every binary wrapper returns `{Success, ExitCode, Data, ErrorMessage, ErrorDetail}`; workflow functions never throw for recoverable errors.
+
+---
+
+## Known Config Constraints — Entrust nShield
+
+Hard-won rules from testing against real hardware, encoded into the tool:
+
+- `remote_esn=` / `ntoken_esn=` must be **omitted entirely** when empty — the parser enforces exactly 14 characters if the field is present
+- `[nethsm_imports]` multi-entry separator is a single `-` line; `[hs_clients]` uses `-----`
+- `nethsmenroll` requires unredirected stdout/stderr (interactive ESN/keyhash confirmation)
+- `rfs-sync --setup` requires `--force` to suppress its overwrite confirmation prompt
+- The HSM only exports its config to the RFS **after** the RFS IP is entered on the HSM front panel (`System > System configuration > Remote file system`) — the RFS workflow waits for this
+
+---
+
+## Out of Scope
+
+- **Security World creation** (Entrust) — a manual ceremony requiring an Administrator Card Set; the tool checks and reports world status but never creates one
+- **nToken-based client authentication** — detected and deferred to manual configuration
+- **Linux** — planned as a separate parallel implementation, not started
+- Post-Day-0 configuration (NTP, remote syslog, SNMP, CodeSafe)
+
+---
+
+## Disclaimer
+
+This tool is developed and tested in a **lab environment**. It modifies HSM-related configuration files and executes enrollment commands against live HSMs. Before using it in a production environment:
+
+- Test the full workflow in a non-production environment first
+- Verify backups exist and are restorable
+- Review every prompt before confirming
+
+**Use at your own risk. The author accepts no liability for misconfiguration, data loss, or service disruption resulting from the use of this software.** This project is not affiliated with, endorsed by, or supported by Entrust, Thales, or any HSM vendor. All product names and marks are property of their respective owners.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+---
+
+*created by LockedWayi*
