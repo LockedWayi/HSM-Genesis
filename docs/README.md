@@ -110,7 +110,7 @@ windows/
 │       ├── BinaryRunner.ps1      # nfast binary wrappers with structured result objects
 │       ├── HardserverConfig.ps1  # Surgical config editing (hs_clients)
 │       └── templates/
-└── output/
+└── output/                       # Created automatically on first run
     ├── logs/                     # genesis_YYYYMMDD.log
     ├── backups/                  # Timestamped config backups
     └── push-workdir/             # Staging area for config push operations
