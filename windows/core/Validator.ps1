@@ -69,7 +69,7 @@ function Test-GenesisChoice {
 }
 
 function Test-GenesisYesNo {
-    param([Parameter(Mandatory)][string] $Value)
+    param([string] $Value)
     return ($Value.Trim() -imatch '^(y|yes|n|no)$')
 }
 

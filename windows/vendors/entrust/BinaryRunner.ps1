@@ -17,6 +17,9 @@ else {
     'C:\ProgramData\nCipher\Key Management Data'
 }
 
+# ---------------------------------------------------------------------------
+# _New-GenesisResult
+# ---------------------------------------------------------------------------
 function _New-GenesisResult {
     param(
         [bool]   $Success,
@@ -34,6 +37,9 @@ function _New-GenesisResult {
     }
 }
 
+# ---------------------------------------------------------------------------
+# _Invoke-NfastBinary
+# ---------------------------------------------------------------------------
 function _Invoke-NfastBinary {
     param(
         [Parameter(Mandatory)] [string]   $BinaryName,
@@ -122,6 +128,9 @@ function _Invoke-NfastBinary {
     }
 }
 
+# ---------------------------------------------------------------------------
+# Invoke-Anonkneti
+# ---------------------------------------------------------------------------
 function Invoke-Anonkneti {
     param([Parameter(Mandatory)] [string] $HsmIp)
 
@@ -134,7 +143,7 @@ function Invoke-Anonkneti {
         return _New-GenesisResult -Success $false -ExitCode $result.ExitCode -ErrorMessage "anonkneti execution failed for $HsmIp (ExitCode $($result.ExitCode))." -ErrorDetail $result.StdErr
     }
 
-    $esnMatch = [regex]::Match($result.StdOut, '([0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4})')
+    $esnMatch     = [regex]::Match($result.StdOut, '([0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4})')
     $keyhashMatch = [regex]::Match($result.StdOut, '([0-9A-Fa-f]{40})')
 
     if (-not $esnMatch.Success -or -not $keyhashMatch.Success) {
@@ -142,7 +151,7 @@ function Invoke-Anonkneti {
         return _New-GenesisResult -Success $false -ExitCode $result.ExitCode -ErrorMessage "Failed to parse ESN or Keyhash from anonkneti output for $HsmIp." -ErrorDetail $result.StdOut
     }
 
-    $esn = $esnMatch.Groups[1].Value.ToUpper()
+    $esn     = $esnMatch.Groups[1].Value.ToUpper()
     $keyhash = $keyhashMatch.Groups[1].Value.ToLower()
 
     Write-GenesisLog -Level INFO -Message "ESN detected     : $esn"
@@ -154,6 +163,9 @@ function Invoke-Anonkneti {
     }
 }
 
+# ---------------------------------------------------------------------------
+# Invoke-RfsSetupEnroll
+# ---------------------------------------------------------------------------
 function Invoke-RfsSetupEnroll {
     param(
         [Parameter(Mandatory)] [string] $HsmIp,
@@ -175,6 +187,9 @@ function Invoke-RfsSetupEnroll {
     return _New-GenesisResult -Success $true -ExitCode $result.ExitCode
 }
 
+# ---------------------------------------------------------------------------
+# Invoke-RfsSetupGangClient
+# ---------------------------------------------------------------------------
 function Invoke-RfsSetupGangClient {
     param([Parameter(Mandatory)] [string] $ClientIp)
 
@@ -191,6 +206,9 @@ function Invoke-RfsSetupGangClient {
     return _New-GenesisResult -Success $true -ExitCode $result.ExitCode
 }
 
+# ---------------------------------------------------------------------------
+# Invoke-CfgPushNethsm
+# ---------------------------------------------------------------------------
 function Invoke-CfgPushNethsm {
     param(
         [Parameter(Mandatory)] [string] $HsmIp,
@@ -217,11 +235,10 @@ function Invoke-CfgPushNethsm {
     return _New-GenesisResult -Success $true -ExitCode $result.ExitCode
 }
 
+# ---------------------------------------------------------------------------
+# Invoke-NethsmEnroll  (H-5: -Force and -Privileged switches, conditional args)
+# ---------------------------------------------------------------------------
 function Invoke-NethsmEnroll {
-    param([Parameter(Mandatory)] [string] $HsmIp)
-
-    Write-GenesisSection -Title "nethsmenroll - Client Enrollment ($HsmIp)"
-    Write-GenesisLog -Level INFO -Message "nethsmenroll.exe --force $HsmIp"
     param(
         [Parameter(Mandatory)] [string] $HsmIp,
         [switch] $Force,
@@ -231,29 +248,31 @@ function Invoke-NethsmEnroll {
     Write-GenesisSection -Title "nethsmenroll - Client Enrollment ($HsmIp)"
 
     $argList = @()
-    if ($Force) { $argList += '--force' }
+    if ($Force)      { $argList += '--force' }
     if ($Privileged) { $argList += '-p' }
     $argList += $HsmIp
 
     $flagStr = $argList -join ' '
     Write-GenesisLog -Level INFO -Message "nethsmenroll.exe $flagStr"
-    
+
     Write-Host "[i] nethsmenroll will run in interactive mode. Follow the on-screen instructions." -ForegroundColor Cyan
 
     $result = _Invoke-NfastBinary -BinaryName 'nethsmenroll.exe' -Arguments $argList -Interactive
+
+    Write-GenesisLog -Level INFO -Message "HSM enrollment completed: $HsmIp"
+    return _New-GenesisResult -Success $true -ExitCode $result.ExitCode
 }
 
-Write-GenesisLog -Level INFO -Message "HSM enrollment completed: $HsmIp"
-return _New-GenesisResult -Success $true -ExitCode $result.ExitCode
-}
-
+# ---------------------------------------------------------------------------
+# Invoke-RfsSyncSetup
+# ---------------------------------------------------------------------------
 function Invoke-RfsSyncSetup {
     param([Parameter(Mandatory)] [string] $RfsIp)
 
     Write-GenesisSection -Title "rfs-sync - Setup ($RfsIp)"
-    Write-GenesisLog -Level INFO -Message "rfs-sync.exe --setup --no-authenticate $RfsIp"
+    Write-GenesisLog -Level INFO -Message "rfs-sync.exe --force --setup --no-authenticate $RfsIp"
 
-    $result = _Invoke-NfastBinary -BinaryName 'rfs-sync.exe' -Arguments @('--setup', '--no-authenticate', $RfsIp)
+    $result = _Invoke-NfastBinary -BinaryName 'rfs-sync.exe' -Arguments @('--force', '--setup', '--no-authenticate', $RfsIp)
 
     if (-not $result.Success) {
         Write-GenesisLog -Level ERROR -Message "rfs-sync --setup failed. ExitCode=$($result.ExitCode)"
@@ -264,6 +283,9 @@ function Invoke-RfsSyncSetup {
     return _New-GenesisResult -Success $true -ExitCode $result.ExitCode
 }
 
+# ---------------------------------------------------------------------------
+# Invoke-RfsSyncUpdate
+# ---------------------------------------------------------------------------
 function Invoke-RfsSyncUpdate {
     Write-GenesisSection -Title "rfs-sync - Update (Security World Sync)"
     Write-GenesisLog -Level INFO -Message "rfs-sync.exe --update"
@@ -279,6 +301,9 @@ function Invoke-RfsSyncUpdate {
     return _New-GenesisResult -Success $true -ExitCode $result.ExitCode
 }
 
+# ---------------------------------------------------------------------------
+# Invoke-Enquiry
+# ---------------------------------------------------------------------------
 function Invoke-Enquiry {
     Write-GenesisSection -Title "enquiry - Connection Verification"
     Write-GenesisLog -Level INFO -Message "enquiry.exe"
@@ -295,10 +320,10 @@ function Invoke-Enquiry {
 
     if ($blocks.Count -gt 1) {
         for ($i = 1; $i -lt $blocks.Count; $i++) {
-            $blk = $blocks[$i]
-            $esnMatch = [regex]::Match($blk, 'serial number\s+(.+)')
+            $blk       = $blocks[$i]
+            $esnMatch  = [regex]::Match($blk, 'serial number\s+(.+)')
             $modeMatch = [regex]::Match($blk, 'mode\s+(.+)')
-            
+
             if ($esnMatch.Success -and $modeMatch.Success) {
                 if ($modeMatch.Groups[1].Value.Trim().ToLower() -eq 'operational') {
                     $operationalModules += $esnMatch.Groups[1].Value.Trim().ToUpper()
@@ -314,6 +339,9 @@ function Invoke-Enquiry {
     }
 }
 
+# ---------------------------------------------------------------------------
+# Invoke-NfkmInfo  (H-7: ESN regex IgnoreCase, .Trim().ToUpper(); state \s+)
+# ---------------------------------------------------------------------------
 function Invoke-NfkmInfo {
     Write-GenesisSection -Title "nfkminfo - Module State Verification"
     Write-GenesisLog -Level INFO -Message "nfkminfo.exe"
@@ -326,16 +354,27 @@ function Invoke-NfkmInfo {
     }
 
     $usableModules = @()
-    $blocks = $result.StdOut -split 'Module #'
+    $rawOutput = $result.StdOut
+    $nfBlocks = $rawOutput -split 'Module #'
 
-    if ($blocks.Count -gt 1) {
-        for ($i = 1; $i -lt $blocks.Count; $i++) {
-            $blk = $blocks[$i]
+    # Parse the World block (everything before "Module #1")
+    $worldBlock = ($nfBlocks[0])
+    $hknsoMatch = [regex]::Match($worldBlock, 'hknso\s+([0-9a-fA-F]{40})')
+    $hknso = if ($hknsoMatch.Success) { $hknsoMatch.Groups[1].Value.ToLower() } else { $null }
+
+    $worldInitialized = $false
+    if ($hknso -and $hknso -ne ('0' * 40)) {
+        $worldInitialized = $true
+    }
+
+    if ($nfBlocks.Count -gt 1) {
+        for ($i = 1; $i -lt $nfBlocks.Count; $i++) {
+            $blk     = $nfBlocks[$i]
             $preSlot = ($blk -split 'Slot #')[0]
-            
-            $esnMatch = [regex]::Match($preSlot, 'ESN\s+(.+)')
-            $stateMatch = [regex]::Match($preSlot, 'state\s+(.+)')
-            
+
+            $esnMatch   = [regex]::Match($preSlot, 'ESN\s+(.+)',   [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+            $stateMatch = [regex]::Match($preSlot, 'state\s+(.+)', [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+
             if ($esnMatch.Success -and $stateMatch.Success) {
                 if ($stateMatch.Groups[1].Value.Trim() -match '0x2 Usable') {
                     $usableModules += $esnMatch.Groups[1].Value.Trim().ToUpper()
@@ -344,13 +383,18 @@ function Invoke-NfkmInfo {
         }
     }
 
-    Write-GenesisLog -Level INFO -Message "nfkminfo parsed. Usable module count: $($usableModules.Count)"
+    Write-GenesisLog -Level INFO -Message "nfkminfo parsed. Usable module count: $($usableModules.Count). WorldInitialized: $worldInitialized"
     return _New-GenesisResult -Success $true -ExitCode $result.ExitCode -Data @{
-        UsableModules = $usableModules
-        RawOutput     = $result.StdOut
+        UsableModules    = $usableModules
+        RawOutput        = $rawOutput
+        Hknso            = $hknso
+        WorldInitialized = $worldInitialized
     }
 }
 
+# ---------------------------------------------------------------------------
+# New-CknfastrcFile
+# ---------------------------------------------------------------------------
 function New-CknfastrcFile {
     $cknfastrcPath = Join-Path $global:GenesisNfastHome 'cknfastrc'
     Write-GenesisSection -Title "cknfastrc - PKCS#11 Configuration"
@@ -368,7 +412,4 @@ function New-CknfastrcFile {
     Write-GenesisLog -Level INFO -Message "cknfastrc written: $cknfastrcPath"
     Write-Host "[OK] cknfastrc created: $cknfastrcPath" -ForegroundColor Green
     return _New-GenesisResult -Success $true -ExitCode 0
-    Write-GenesisLog -Level INFO -Message "cknfastrc written: $cknfastrcPath"
-    Write-Host "[OK] cknfastrc created: $cknfastrcPath" -ForegroundColor Green
-    return _New-GenesisResult -Success $true -ExitCode 0
-} }
+}

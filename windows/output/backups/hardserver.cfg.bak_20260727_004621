@@ -295,13 +295,15 @@ syntax-version=1
 #
 # ESN of this client's nToken
 #  ntoken_esn=ESN
-# Managed by Genesis-Init ??? Do not manually edit this section.
 local_module=0
 remote_ip=192.168.202.152
 remote_port=9004
-keyhash=0000000000000000000000000000000000000000
-privileged=0
+remote_esn=031A-05E0-D947
+keyhash=9b9781c24fdb43a1f25e51103924d61740cc253c
+privileged=1
 privileged_use_high_port=0
+ntoken_esn=
+
 
 [load_seemachine]
 # Start of the load_seemachine section
@@ -527,6 +529,12 @@ privileged_use_high_port=0
 # software KNETI authentication or no authentication required (default is
 # empty).
 #  remote_esn=ESN
+remote_ip=192.168.202.102
+remote_port=9004
+use_kneti=no
+local_esn=
+remote_keyhash=0000000000000000000000000000000000000000
+remote_esn=
 
 
 [hs_clients]

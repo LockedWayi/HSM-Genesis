@@ -26,12 +26,13 @@ function _Test-NfastBinaries {
 
 function Invoke-RfsWorkflow {
     while ($true) {
-        Write-Host "  ============================================================"
-        Write-Host "    RFS Server Setup"
-        Write-Host "  ============================================================"
+        Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+        Write-Host "   RFS Server Setup" -ForegroundColor White
+        Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
         Write-Host ""
 
-        $cont = Read-ValidatedInput -Prompt "    Continue? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v }
+        Write-Host ""
+        $cont = Read-ValidatedInput -Prompt "  Continue? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v }
         if ($cont -match '^(n|no)$') { return $global:GenesisStates.ENTRUST_ROLE }
 
         $hsmIp = ""
@@ -57,7 +58,7 @@ function Invoke-RfsWorkflow {
                 Write-Host ""
                 Write-Host "  [FAILED] $($anonResult.ErrorMessage)" -ForegroundColor Red
                 if ($anonResult.ErrorDetail) {
-                    Write-Host "  Detail : $($anonResult.ErrorDetail)" -ForegroundColor DarkRed
+                    Write-Host "  Detail  : $($anonResult.ErrorDetail)" -ForegroundColor DarkRed
                 }
                 Write-Host ""
                 $retry = Read-ValidatedInput -Prompt "  Retry with the same IP? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v }
@@ -71,6 +72,7 @@ function Invoke-RfsWorkflow {
 
         if ($clientCount -eq 0) {
             Write-GenesisLog -Level WARN -Message "No client will be whitelisted. RFS enrollment will proceed without clients."
+            Write-Host ""
             $c0 = Read-ValidatedInput -Prompt "  Continue with 0 clients? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v }
             if ($c0 -match '^(n|no)$') { continue }
         }
@@ -91,10 +93,10 @@ function Invoke-RfsWorkflow {
 
         $clientPerm = 'priv'
         if ($clientCount -gt 0) {
-            Write-Host "  Select client permission mode:"
-            Write-Host "  [1] priv        (recommended for RFS acting as client too)"
-            Write-Host "  [2] unpriv      (recommended for production apps)"
-            Write-Host "  [3] priv_lowport"
+            Write-Host "  Select client permission mode:" -ForegroundColor White
+            Write-Host "  [1] priv        (recommended for RFS acting as client too)" -ForegroundColor Cyan
+            Write-Host "  [2] unpriv      (recommended for production apps)" -ForegroundColor Cyan
+            Write-Host "  [3] priv_lowport" -ForegroundColor Cyan
 
             $permChoice = Read-ValidatedInput -Prompt "  Selection [1]" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('1', '2', '3') } -Default '1'
             $clientPerm = switch ($permChoice) { '1' { 'priv' }; '2' { 'unpriv' }; '3' { 'priv_lowport' } }
@@ -106,22 +108,25 @@ function Invoke-RfsWorkflow {
             if ($nt -match '^(y|yes)$') {
                 $usesNtoken = $true
                 Write-Host "  [WARN] nToken support is not automated. Manual configuration required later." -ForegroundColor Yellow
+                Write-Host ""
                 $contN = Read-ValidatedInput -Prompt "  Understood, continue? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v }
                 if ($contN -match '^(n|no)$') { return $global:GenesisStates.ENTRUST_ROLE }
             }
         }
 
-        Write-Host "  ------------------------------------------------------------"
-        Write-Host "    Review Setup Parameters"
-        Write-Host "  ------------------------------------------------------------"
-        Write-Host "  HSM IP        : $hsmIp"
-        Write-Host "  HSM ESN       : $cachedEsn"
-        Write-Host "  HSM Keyhash   : $cachedKeyhash"
-        Write-Host "  Client Count  : $clientCount"
+        Write-Host ""
+        Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+        Write-Host "   Review Setup Parameters" -ForegroundColor White
+        Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+        Write-Host ""
+        Write-Host "  HSM IP        : $hsmIp" -ForegroundColor White
+        Write-Host "  HSM ESN       : $cachedEsn" -ForegroundColor White
+        Write-Host "  HSM Keyhash   : $cachedKeyhash" -ForegroundColor White
+        Write-Host "  Client Count  : $clientCount" -ForegroundColor White
         if ($clientCount -gt 0) {
-            Write-Host "  Client IPs    : $($clientIps -join ', ')"
-            Write-Host "  Client Perm   : $clientPerm"
-            Write-Host "  Uses nToken   : $(if($usesNtoken){'Yes'}else{'No'})"
+            Write-Host "  Client IPs    : $($clientIps -join ', ')" -ForegroundColor White
+            Write-Host "  Client Perm   : $clientPerm" -ForegroundColor White
+            Write-Host "  Uses nToken   : $(if($usesNtoken){'Yes'}else{'No'})" -ForegroundColor White
         }
         Write-Host ""
 
@@ -142,7 +147,7 @@ function Invoke-RfsWorkflow {
             Write-Host ""
             Write-Host "  [FAILED] $($enrollResult.ErrorMessage)" -ForegroundColor Red
             if ($enrollResult.ErrorDetail) {
-                Write-Host "  Detail : $($enrollResult.ErrorDetail)" -ForegroundColor DarkRed
+                Write-Host "  Detail  : $($enrollResult.ErrorDetail)" -ForegroundColor DarkRed
             }
             Write-Host ""
 
@@ -166,7 +171,7 @@ function Invoke-RfsWorkflow {
                     Write-Host ""
                     Write-Host "  [FAILED] $($gangResult.ErrorMessage)" -ForegroundColor Red
                     if ($gangResult.ErrorDetail) {
-                        Write-Host "  Detail : $($gangResult.ErrorDetail)" -ForegroundColor DarkRed
+                        Write-Host "  Detail  : $($gangResult.ErrorDetail)" -ForegroundColor DarkRed
                     }
                     Write-Host ""
 
@@ -180,30 +185,67 @@ function Invoke-RfsWorkflow {
 
         Start-GenesisStep -Name "hs_clients config edit"
         $hsmConfigPath = Join-Path $global:GenesisNfastKmDataPath "hsm-$cachedEsn\config\config"
-        $configFound = $false
-        while ($true) {
-            if (-not (Test-Path -LiteralPath $hsmConfigPath -PathType Leaf)) {
-                Write-GenesisLog -Level ERROR -Message "Expected HSM config not found: $hsmConfigPath"
 
-                $ra = Read-ValidatedInput -Prompt "  Retry file check, or Abort? (R/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r', 'a') }
-                if ($ra -match 'a') { Complete-GenesisStep -Status 'Failed' -ErrorMessage "Aborted"; return $global:GenesisStates.ENTRUST_ROLE }
-                continue
-            }
-            $configFound = $true
-            break
-        }
+        if (-not (Test-Path -LiteralPath $hsmConfigPath -PathType Leaf)) {
+            Write-Host ""
+            Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+            Write-Host "   Manual Step Required  |  Configure RFS on HSM Front Panel" -ForegroundColor White
+            Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+            Write-Host ""
+            Write-Host "  The HSM has not yet exported its config file to the RFS." -ForegroundColor White
+            Write-Host "  This is expected on first-time setup." -ForegroundColor White
+            Write-Host ""
+            Write-Host "  On the HSM front panel, navigate to:" -ForegroundColor Yellow
+            Write-Host "    System > System configuration > Remote file system" -ForegroundColor Cyan
+            Write-Host ""
+            Write-Host "  Enter the IP address of this RFS server on the HSM." -ForegroundColor Cyan
+            Write-Host "  Port: 9004  |  Push mode: AUTO  |  Secure auth: No" -ForegroundColor DarkGray
+            Write-Host ""
+            Write-Host "  Once complete, the HSM will export its config to:" -ForegroundColor White
+            Write-Host "    $hsmConfigPath" -ForegroundColor DarkGray
+            Write-Host ""
+            Write-Host "  Waiting for HSM config export..." -ForegroundColor Yellow
+            Write-Host ""
 
-        if ($configFound) {
-            foreach ($cip in $clientIps) {
-                $editResult = Add-HsClientEntry -FilePath $hsmConfigPath -ClientIp $cip -ClientPerm $clientPerm
-                if (-not $editResult.Success) {
-                    Write-GenesisLog -Level ERROR -Message $editResult.ErrorMessage
-                    $ab = Read-ValidatedInput -Prompt "  Abort and go back? (Y/N) [Y]" -Validator { param($v) Test-GenesisYesNo -Value $v } -Default 'Y'
-                    if ($ab -match '^(y|yes)$') { Complete-GenesisStep -Status 'Failed' -ErrorMessage "Aborted"; return $global:GenesisStates.ENTRUST_ROLE }
+            $waitCount = 0
+            while (-not (Test-Path -LiteralPath $hsmConfigPath -PathType Leaf)) {
+                Start-Sleep -Seconds 5
+                $waitCount++
+
+                if ($waitCount % 6 -eq 0) {
+                    Write-Host "  ...still waiting ($([math]::Round($waitCount * 5 / 60, 1)) min elapsed). Press Ctrl+C to abort." -ForegroundColor DarkGray
+                }
+
+                if ($waitCount -ge 120) {
+                    Write-Host ""
+                    Write-Host "  [!] Config file has not appeared after 10 minutes." -ForegroundColor Yellow
+                    Write-Host ""
+                    $wa = Read-ValidatedInput `
+                        -Prompt "  Wait longer, or Abort? (W/A)" `
+                        -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('w', 'a', 'W', 'A') }
+                    if ($wa -match '^[aA]$') {
+                        Complete-GenesisStep -Status 'Failed' -ErrorMessage "User aborted while waiting for HSM config export"
+                        return $global:GenesisStates.ENTRUST_ROLE
+                    }
+                    $waitCount = 0
                 }
             }
-            Complete-GenesisStep -Status 'Success'
+
+            Write-Host ""
+            Write-Host "  [OK] HSM config file detected." -ForegroundColor Green
+            Write-Host ""
+            Write-GenesisLog -Level INFO -Message "HSM config exported to RFS: $hsmConfigPath"
         }
+
+        foreach ($cip in $clientIps) {
+            $editResult = Add-HsClientEntry -FilePath $hsmConfigPath -ClientIp $cip -ClientPerm $clientPerm
+            if (-not $editResult.Success) {
+                Write-GenesisLog -Level ERROR -Message $editResult.ErrorMessage
+                $ab = Read-ValidatedInput -Prompt "  Abort and go back? (Y/N) [Y]" -Validator { param($v) Test-GenesisYesNo -Value $v } -Default 'Y'
+                if ($ab -match '^(y|yes)$') { Complete-GenesisStep -Status 'Failed' -ErrorMessage "Aborted"; return $global:GenesisStates.ENTRUST_ROLE }
+            }
+        }
+        Complete-GenesisStep -Status 'Success'
 
         Start-GenesisStep -Name "Config push to HSM"
         $pushWorkDir = Join-Path $global:GenesisEngineBaseDir "output\push-workdir"
@@ -222,7 +264,7 @@ function Invoke-RfsWorkflow {
                 Write-Host ""
                 Write-Host "  [FAILED] $($pushResult.ErrorMessage)" -ForegroundColor Red
                 if ($pushResult.ErrorDetail) {
-                    Write-Host "  Detail : $($pushResult.ErrorDetail)" -ForegroundColor DarkRed
+                    Write-Host "  Detail  : $($pushResult.ErrorDetail)" -ForegroundColor DarkRed
                 }
                 Write-Host ""
 
@@ -232,15 +274,55 @@ function Invoke-RfsWorkflow {
         }
     }
 
-    Write-Host "  ============================================================"
-    Write-Host "    RFS Server Setup COMPLETED"
-    Write-Host "  ============================================================"
-    Write-Host "  HSM       : $hsmIp (${cachedEsn})"
-    Write-Host "  Clients   : $clientCount whitelisted"
+    Start-GenesisStep -Name "Security World status"
 
-    Write-Host "  [1] Setup another HSM"
-    Write-Host "  [2] Return to main menu"
-    Write-Host "  [3] Exit"
+    $rfsNfResult = Invoke-NfkmInfo
+    if ($rfsNfResult.Success) {
+        if ($rfsNfResult.Data.WorldInitialized) {
+            Write-Host ""
+            Write-Host "  [OK] Security World is initialized." -ForegroundColor Green
+            Write-Host "       HKNSO: $($rfsNfResult.Data.Hknso)" -ForegroundColor DarkGray
+            Write-GenesisLog -Level INFO -Message "Security World initialized. HKNSO: $($rfsNfResult.Data.Hknso)"
+            Complete-GenesisStep -Status 'Success'
+        } else {
+            Write-Host ""
+            Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+            Write-Host "   Security World NOT Initialized" -ForegroundColor Yellow
+            Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+            Write-Host ""
+            Write-Host "  The HSM has no Security World loaded (HKNSO is all zeros)." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "  A Security World must be created before the HSM can be used." -ForegroundColor White
+            Write-Host "  This is a manual ceremony that requires:" -ForegroundColor White
+            Write-Host "    - HSM in Initialisation mode (front panel or serial console)" -ForegroundColor DarkGray
+            Write-Host "    - Administrator Card Set (ACS) creation" -ForegroundColor DarkGray
+            Write-Host "    - new-world binary run with quorum parameters" -ForegroundColor DarkGray
+            Write-Host ""
+            Write-Host "  Genesis does not automate Security World creation." -ForegroundColor DarkGray
+            Write-Host "  Refer to nShield documentation for the ceremony steps." -ForegroundColor DarkGray
+            Write-Host ""
+            Write-GenesisLog -Level WARN -Message "Security World NOT initialized on HSM. Manual ceremony required."
+            Complete-GenesisStep -Status 'Warning' -ErrorMessage "Security World not initialized"
+        }
+    } else {
+        Write-GenesisLog -Level WARN -Message "Skipping Security World status check - nfkminfo failed."
+        Complete-GenesisStep -Status 'Skipped'
+    }
+
+    Write-Host ""
+    Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+    Write-Host "   RFS Server Setup  |  COMPLETED" -ForegroundColor Green
+    Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  HSM       : $hsmIp (${cachedEsn})" -ForegroundColor White
+    Write-Host "  Clients   : $clientCount whitelisted" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  [1]  Setup another HSM" -ForegroundColor Cyan
+    Write-Host "  [2]  Return to main menu" -ForegroundColor Cyan
+    Write-Host "  [3]  Exit" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+    Write-Host ""
     $fin = Read-ValidatedInput -Prompt "  Selection" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('1', '2', '3') }
     if ($fin -eq '1') { return $global:GenesisStates.ENTRUST_ROLE }
     if ($fin -eq '2') { return $global:GenesisStates.MAIN_MENU }
@@ -250,12 +332,13 @@ function Invoke-RfsWorkflow {
 function Invoke-ClientWorkflow {
 
     while ($true) {
-        Write-Host "  ============================================================"
-        Write-Host "    Client Server Setup"
-        Write-Host "  ============================================================"
+        Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+        Write-Host "   Client Server Setup" -ForegroundColor White
+        Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
         Write-Host ""
 
-        $cont = Read-ValidatedInput -Prompt "    Continue? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v }
+        Write-Host ""
+        $cont = Read-ValidatedInput -Prompt "  Continue? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v }
         if ($cont -match '^(n|no)$') { return $global:GenesisStates.ENTRUST_ROLE }
 
         $rfsIp = ""
@@ -286,6 +369,7 @@ function Invoke-ClientWorkflow {
             }
             elseif ($pingCount -lt 3) {
                 Write-GenesisLog -Level WARN -Message "Partial ping success ($pingCount/3). RFS may have intermittent connectivity."
+                Write-Host ""
                 $contP = Read-ValidatedInput -Prompt "  Continue anyway? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v }
                 if ($contP -match '^(n|no)$') { $rfsIp = ""; continue }
                 break
@@ -321,10 +405,10 @@ function Invoke-ClientWorkflow {
                     $hsmIps += $hip
                     $hsmIdentities[$hip] = $anonResult.Data
 
-                    Write-Host "  Connection mode for HSM ${hip}:"
-                    Write-Host "  [1] privileged   (recommended if RFS acts as client too, or test environments;"
-                    Write-Host "                    at least one priv client is advised)"
-                    Write-Host "  [2] unprivileged (recommended for production environments)"
+                    Write-Host "  Connection mode for HSM ${hip}:" -ForegroundColor White
+                    Write-Host "  [1] privileged   (recommended if RFS acts as client too, or test environments;" -ForegroundColor Cyan
+                    Write-Host "                    at least one priv client is advised)" -ForegroundColor Cyan
+                    Write-Host "  [2] unprivileged (recommended for production environments)" -ForegroundColor Cyan
                     $privChoice = Read-ValidatedInput `
                         -Prompt "  Selection [2]" `
                         -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('1', '2') } `
@@ -346,7 +430,7 @@ function Invoke-ClientWorkflow {
                     Write-Host ""
                     Write-Host "  [FAILED] $($anonResult.ErrorMessage)" -ForegroundColor Red
                     if ($anonResult.ErrorDetail) {
-                        Write-Host "  Detail : $($anonResult.ErrorDetail)" -ForegroundColor DarkRed
+                        Write-Host "  Detail  : $($anonResult.ErrorDetail)" -ForegroundColor DarkRed
                     }
                     Write-Host ""
 
@@ -364,71 +448,66 @@ function Invoke-ClientWorkflow {
             return $global:GenesisStates.ENTRUST_ROLE
         }
 
-        Write-Host "  ------------------------------------------------------------"
-        Write-Host "    Review Setup Parameters"
-        Write-Host "  ------------------------------------------------------------"
-        Write-Host "  RFS IP        : $rfsIp"
-        Write-Host "  HSM Count     : $hsmCount"
+        Write-Host ""
+        Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+        Write-Host "   Review Setup Parameters" -ForegroundColor White
+        Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+        Write-Host ""
+        Write-Host "  RFS IP        : $rfsIp" -ForegroundColor White
+        Write-Host "  HSM Count     : $hsmCount" -ForegroundColor White
         foreach ($entry in $hsmEntries) {
             $privLabel = if ($entry.Privileged -eq 1) { 'priv' } else { 'unpriv' }
-            Write-Host "    - $($entry.IP) ($($entry.ESN)) [$privLabel]"
+            Write-Host "    - $($entry.IP) ($($entry.ESN)) [$privLabel]" -ForegroundColor Cyan
         }
+        Write-Host ""
+        Write-Host "  Planned steps:" -ForegroundColor DarkGray
+        Write-Host "    1. nethsmenroll for each HSM" -ForegroundColor DarkGray
+        Write-Host "    2. rfs-sync setup" -ForegroundColor DarkGray
+        Write-Host "    3. rfs-sync update" -ForegroundColor DarkGray
+        Write-Host "    4. enquiry + nfkminfo verification" -ForegroundColor DarkGray
+        Write-Host "    5. Security World status check" -ForegroundColor DarkGray
+        Write-Host "    6. cknfastrc creation" -ForegroundColor DarkGray
         Write-Host ""
 
         $proc = Read-ValidatedInput -Prompt "  Proceed with setup? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v }
         if ($proc -match '^(y|yes)$') { break }
     }
 
-    Start-GenesisStep -Name "Generate hardserver.cfg"
-    $templatePath = Join-Path $global:GenesisEngineBaseDir 'vendors\entrust\templates\hardserver.cfg.template'
-    while ($true) {
-        if (-not (Test-Path -LiteralPath $templatePath -PathType Leaf)) {
-            Write-GenesisLog -Level ERROR -Message "Template file missing: $templatePath"
-
-            $ra = Read-ValidatedInput -Prompt "  Retry check, or Abort? (R/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r', 'a') }
-            if ($ra -match 'a') { Complete-GenesisStep -Status 'Failed'; return $global:GenesisStates.ENTRUST_ROLE }
-            continue
-        }
-        break
-    }
-
-    $outputPath = Join-Path $global:GenesisNfastKmDataPath 'config\config'
-    if (-not (Test-Path -LiteralPath $outputPath -PathType Leaf)) {
-        Write-GenesisLog -Level WARN -Message "No existing hardserver.cfg found. Version mismatch warning."
-        $cont = Read-ValidatedInput -Prompt "  Continue? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v }
-        if ($cont -match '^(n|no)$') { Complete-GenesisStep -Status 'Failed'; return $global:GenesisStates.ENTRUST_ROLE }
-    }
-
-    $backupDir = Join-Path $global:GenesisEngineBaseDir 'output\backups'
-    $genResult = New-EntrustHardserverConfig -HsmEntries $hsmEntries -TemplatePath $templatePath -OutputPath $outputPath -BackupDir $backupDir
-    if (-not $genResult.Success) {
-        Write-GenesisLog -Level ERROR -Message $genResult.ErrorMessage
-        Complete-GenesisStep -Status 'Failed'
-        return $global:GenesisStates.ENTRUST_ROLE
-    }
-    Complete-GenesisStep -Status 'Success'
-
-    Start-GenesisStep -Name "nethsmenroll for all HSMs"
+    Start-GenesisStep -Name "nethsmenroll - HSM enrollment"
     for ($idx = 0; $idx -lt $hsmIps.Count; $idx++) {
         $hip = $hsmIps[$idx]
+
+        Write-Host ""
+        Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+        Write-Host "   nethsmenroll  |  HSM Enrollment ($hip)" -ForegroundColor White
+        Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+
         while ($true) {
             $privFlag = $hsmEntries[$idx].Privileged -eq 1
             $enrollResult = Invoke-NethsmEnroll -HsmIp $hip -Force -Privileged:$privFlag
-            if ($enrollResult.Success) { break }
+            if ($enrollResult.Success) {
+                Write-Host ""
+                Write-Host "  [OK] nethsmenroll completed for $hip" -ForegroundColor Green
+                Write-Host "       ESN     : $($hsmEntries[$idx].ESN)" -ForegroundColor DarkGray
+                Write-Host "       Keyhash : $($hsmEntries[$idx].Keyhash)" -ForegroundColor DarkGray
+                Write-Host "       Mode    : $(if ($privFlag) { 'privileged' } else { 'unprivileged' })" -ForegroundColor DarkGray
+                Write-Host ""
+                break
+            }
             else {
                 Write-GenesisLog -Level ERROR -Message $enrollResult.ErrorMessage
 
                 Write-Host ""
                 Write-Host "  [FAILED] $($enrollResult.ErrorMessage)" -ForegroundColor Red
                 if ($enrollResult.ErrorDetail) {
-                    Write-Host "  Detail : $($enrollResult.ErrorDetail)" -ForegroundColor DarkRed
+                    Write-Host "  Detail  : $($enrollResult.ErrorDetail)" -ForegroundColor DarkRed
                 }
                 Write-Host ""
 
                 $rcsa = Read-ValidatedInput -Prompt "  Retry, Change IP, Skip, or Abort? (R/C/S/A)" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('r', 'c', 's', 'a') }
                 if ($rcsa -match 'a') { Complete-GenesisStep -Status 'Failed'; return $global:GenesisStates.ENTRUST_ROLE }
                 if ($rcsa -match 's') { break }
-                if ($rcsa -match 'c') { 
+                if ($rcsa -match 'c') {
 
                     $newIp = Read-ValidatedInput -Prompt "  New HSM IP" -Validator { param($v) Test-GenesisIPv4 -Value $v }
                     $anon = Invoke-Anonkneti -HsmIp $newIp
@@ -455,7 +534,7 @@ function Invoke-ClientWorkflow {
         Write-Host ""
         Write-Host "  [FAILED] $($syncSetup.ErrorMessage)" -ForegroundColor Red
         if ($syncSetup.ErrorDetail) {
-            Write-Host "  Detail : $($syncSetup.ErrorDetail)" -ForegroundColor DarkRed
+            Write-Host "  Detail  : $($syncSetup.ErrorDetail)" -ForegroundColor DarkRed
         }
         Write-Host ""
 
@@ -474,7 +553,7 @@ function Invoke-ClientWorkflow {
         Write-Host ""
         Write-Host "  [FAILED] $($syncUpdate.ErrorMessage)" -ForegroundColor Red
         if ($syncUpdate.ErrorDetail) {
-            Write-Host "  Detail : $($syncUpdate.ErrorDetail)" -ForegroundColor DarkRed
+            Write-Host "  Detail  : $($syncUpdate.ErrorDetail)" -ForegroundColor DarkRed
         }
         Write-Host ""
 
@@ -490,7 +569,7 @@ function Invoke-ClientWorkflow {
         Write-Host ""
         Write-Host "  [FAILED] $($enqResult.ErrorMessage)" -ForegroundColor Red
         if ($enqResult.ErrorDetail) {
-            Write-Host "  Detail : $($enqResult.ErrorDetail)" -ForegroundColor DarkRed
+            Write-Host "  Detail  : $($enqResult.ErrorDetail)" -ForegroundColor DarkRed
         }
         Write-Host ""
         Complete-GenesisStep -Status 'Failed'
@@ -536,7 +615,7 @@ function Invoke-ClientWorkflow {
         Write-Host ""
         Write-Host "  [FAILED] $($nfResult.ErrorMessage)" -ForegroundColor Red
         if ($nfResult.ErrorDetail) {
-            Write-Host "  Detail : $($nfResult.ErrorDetail)" -ForegroundColor DarkRed
+            Write-Host "  Detail  : $($nfResult.ErrorDetail)" -ForegroundColor DarkRed
         }
         Write-Host ""
         Complete-GenesisStep -Status 'Failed'
@@ -558,6 +637,7 @@ function Invoke-ClientWorkflow {
             Complete-GenesisStep -Status 'Success'
         }
         else {
+            Write-Host ""
             $cont = Read-ValidatedInput -Prompt "  Continue to cknfastrc step? (Y/N)" `
                 -Validator { param($v) Test-GenesisYesNo -Value $v }
             if ($cont -match '^(n|no)$') {
@@ -566,6 +646,40 @@ function Invoke-ClientWorkflow {
             }
             Complete-GenesisStep -Status 'Warning'
         }
+    }
+
+    Start-GenesisStep -Name "Security World status"
+
+    if ($nfResult.Success) {
+        if ($nfResult.Data.WorldInitialized) {
+            Write-Host ""
+            Write-Host "  [OK] Security World is initialized." -ForegroundColor Green
+            Write-Host "       HKNSO: $($nfResult.Data.Hknso)" -ForegroundColor DarkGray
+            Write-GenesisLog -Level INFO -Message "Security World initialized. HKNSO: $($nfResult.Data.Hknso)"
+            Complete-GenesisStep -Status 'Success'
+        } else {
+            Write-Host ""
+            Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+            Write-Host "   Security World NOT Initialized" -ForegroundColor Yellow
+            Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+            Write-Host ""
+            Write-Host "  The HSM has no Security World loaded (HKNSO is all zeros)." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "  A Security World must be created before the HSM can be used." -ForegroundColor White
+            Write-Host "  This is a manual ceremony that requires:" -ForegroundColor White
+            Write-Host "    - HSM in Initialisation mode (front panel or serial console)" -ForegroundColor DarkGray
+            Write-Host "    - Administrator Card Set (ACS) creation" -ForegroundColor DarkGray
+            Write-Host "    - new-world binary run with quorum parameters" -ForegroundColor DarkGray
+            Write-Host ""
+            Write-Host "  Genesis does not automate Security World creation." -ForegroundColor DarkGray
+            Write-Host "  Refer to nShield documentation for the ceremony steps." -ForegroundColor DarkGray
+            Write-Host ""
+            Write-GenesisLog -Level WARN -Message "Security World NOT initialized on HSM. Manual ceremony required."
+            Complete-GenesisStep -Status 'Warning' -ErrorMessage "Security World not initialized"
+        }
+    } else {
+        Write-GenesisLog -Level WARN -Message "Skipping Security World status check - nfkminfo failed earlier."
+        Complete-GenesisStep -Status 'Skipped'
     }
 
     Start-GenesisStep -Name "Create cknfastrc"
@@ -578,13 +692,17 @@ function Invoke-ClientWorkflow {
         Complete-GenesisStep -Status 'Success'
     }
 
-    Write-Host "  ============================================================"
-    Write-Host "    Client Server Setup COMPLETED"
-    Write-Host "  ============================================================"
-
-    Write-Host "  [1] Setup another Server"
-    Write-Host "  [2] Return to main menu"
-    Write-Host "  [3] Exit"
+    Write-Host ""
+    Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+    Write-Host "   Client Server Setup  |  COMPLETED" -ForegroundColor Green
+    Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  [1]  Setup another Server" -ForegroundColor Cyan
+    Write-Host "  [2]  Return to main menu" -ForegroundColor Cyan
+    Write-Host "  [3]  Exit" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "  -----------------------------------------------------------------------" -ForegroundColor DarkGray
+    Write-Host ""
     $fin = Read-ValidatedInput -Prompt "  Selection" -Validator { param($v) Test-GenesisChoice -Value $v -ValidOptions @('1', '2', '3') }
     if ($fin -eq '1') { return $global:GenesisStates.ENTRUST_ROLE }
     if ($fin -eq '2') { return $global:GenesisStates.MAIN_MENU }
@@ -637,7 +755,8 @@ function Start-GenesisEngine {
         Write-GenesisLog -Level WARN -Message "NFAST_HOME environment variable is missing."
         Write-Host "[WARN] NFAST_HOME is not set in environment." -ForegroundColor Yellow
 
-        $cont = Read-ValidatedInput -Prompt "Continue with default (C:\Program Files\nCipher\nfast)? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v } -Default 'Y'
+        Write-Host ""
+        $cont = Read-ValidatedInput -Prompt "  Continue with default (C:\Program Files\nCipher\nfast)? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v } -Default 'Y'
         if ($cont -match '^(n|no)$') { exit 1 }
     }
 
@@ -647,7 +766,8 @@ function Start-GenesisEngine {
         Write-Host "[WARN] The following nShield binaries were not found:" -ForegroundColor Yellow
         foreach ($b in $missingBins) { Write-Host "  - $b" -ForegroundColor Yellow }
 
-        $cont = Read-ValidatedInput -Prompt "Continue anyway? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v } -Default 'N'
+        Write-Host ""
+        $cont = Read-ValidatedInput -Prompt "  Continue anyway? (Y/N)" -Validator { param($v) Test-GenesisYesNo -Value $v } -Default 'N'
         if ($cont -match '^(n|no)$') { exit 1 }
     }
 
